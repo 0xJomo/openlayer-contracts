@@ -12,7 +12,7 @@ import "@eigenlayer-middleware/src/ServiceManagerBase.sol";
 contract OpenOracleServiceManager is ServiceManagerBase {
     using BytesLib for bytes;
 
-    OpenOracleServiceManager public immutable openOracleTaskManager;
+    IOpenOracleTaskManager public immutable openOracleTaskManager;
 
     /// @notice when applied to a function, ensures that the function is only callable by the `registryCoordinator`.
     modifier onlyOpenOracleTaskManager() {
