@@ -78,10 +78,12 @@ contract OpenOracleTaskManager is
 
     function initialize(
         IPauserRegistry _pauserRegistry,
-        address initialOwner
+        address initialOwner,
+        address _aggregator
     ) public initializer {
         _initializePauser(_pauserRegistry, UNPAUSE_ALL);
         _transferOwnership(initialOwner);
+        aggregator = _aggregator;
     }
 
     /* FUNCTIONS */

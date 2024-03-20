@@ -30,7 +30,7 @@ import "forge-std/StdJson.sol";
 import "forge-std/console.sol";
 
 // # To deploy and verify our contract
-// forge script script/CredibleSquaringDeployer.s.sol:CredibleSquaringDeployer --rpc-url $RPC_URL  --private-key $PRIVATE_KEY --broadcast -vvvv
+// forge script script/OpenOracleDeployer.s.sol:OpenOracleDeployer --rpc-url http://127.0.0.1:8545  --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 --broadcast -vvvv
 contract OpenOracleDeployer is Script, Utils {
     // DEPLOYMENT CONSTANTS
     uint256 public constant QUORUM_THRESHOLD_PERCENTAGE = 100;
@@ -105,8 +105,8 @@ contract OpenOracleDeployer is Script, Utils {
                 )
             );
 
-        address credibleSquaringCommunityMultisig = msg.sender;
-        address credibleSquaringPauser = msg.sender;
+        address openOracleCommunityMultisig = msg.sender;
+        address openOraclePauser = msg.sender;
 
         vm.startBroadcast();
         _deployErc20AndStrategyAndWhitelistStrategy(
@@ -115,11 +115,11 @@ contract OpenOracleDeployer is Script, Utils {
             baseStrategyImplementation,
             strategyManager
         );
-        _deployCredibleSquaringContracts(
+        _deployOpenOracleContracts(
             delegationManager,
             erc20MockStrategy,
-            credibleSquaringCommunityMultisig,
-            credibleSquaringPauser
+            openOracleCommunityMultisig,
+            openOraclePauser
         );
         vm.stopBroadcast();
     }
@@ -153,11 +153,11 @@ contract OpenOracleDeployer is Script, Utils {
         strategyManager.addStrategiesToDepositWhitelist(strats);
     }
 
-    function _deployCredibleSquaringContracts(
+    function _deployOpenOracleContracts(
         IDelegationManager delegationManager,
         IStrategy strat,
         address openOracleCommunityMultisig,
-        address credibleSquaringPauser
+        address openOraclePauser
     ) internal {
         // Adding this as a temporary fix to make the rest of the script work with a single strategy
         // since it was originally written to work with an array of strategies
@@ -170,7 +170,7 @@ contract OpenOracleDeployer is Script, Utils {
         // deploy pauser registry
         {
             address[] memory pausers = new address[](2);
-            pausers[0] = credibleSquaringPauser;
+            pausers[0] = openOraclePauser;
             pausers[1] = openOracleCommunityMultisig;
             openOraclePauserReg = new PauserRegistry(
                 pausers,
@@ -394,22 +394,22 @@ contract OpenOracleDeployer is Script, Utils {
         );
         vm.serializeAddress(
             deployed_addresses,
-            "credibleSquaringServiceManager",
+            "openOracleServiceManager",
             address(openOracleServiceManager)
         );
         vm.serializeAddress(
             deployed_addresses,
-            "credibleSquaringServiceManagerImplementation",
+            "openOracleServiceManagerImplementation",
             address(openOracleServiceManagerImplementation)
         );
         vm.serializeAddress(
             deployed_addresses,
-            "credibleSquaringTaskManager",
+            "openOracleTaskManager",
             address(openOracleTaskManager)
         );
         vm.serializeAddress(
             deployed_addresses,
-            "credibleSquaringTaskManagerImplementation",
+            "openOracleTaskManagerImplementation",
             address(openOracleTaskManagerImplementation)
         );
         vm.serializeAddress(
