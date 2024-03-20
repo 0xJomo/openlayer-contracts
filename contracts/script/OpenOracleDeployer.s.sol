@@ -39,8 +39,6 @@ contract OpenOracleDeployer is Script, Utils {
     // TODO: right now hardcoding these (this address is anvil's default address 9)
     address public constant AGGREGATOR_ADDR =
         0xa0Ee7A142d267C1f36714E4a8F75612F20a79720;
-    address public constant TASK_GENERATOR_ADDR =
-        0xa0Ee7A142d267C1f36714E4a8F75612F20a79720;
 
     // ERC20 and Strategy: we need to deploy this erc20, create a strategy for it, and whitelist this strategy in the strategymanager
 
@@ -376,8 +374,7 @@ contract OpenOracleDeployer is Script, Utils {
                 openOracleTaskManager.initialize.selector,
                 openOraclePauserReg,
                 openOracleCommunityMultisig,
-                AGGREGATOR_ADDR,
-                TASK_GENERATOR_ADDR
+                AGGREGATOR_ADDR
             )
         );
 

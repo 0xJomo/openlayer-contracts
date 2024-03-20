@@ -26,6 +26,8 @@ contract OpenOracleTaskManager is
     // The number of blocks from the task initialization within which the aggregator has to respond to
     uint32 public immutable TASK_RESPONSE_WINDOW_BLOCK;
     uint256 internal constant _THRESHOLD_DENOMINATOR = 100;
+    // Fee for creating a task
+    uint public taskCreationFee = 0.0001 ether; 
 
     /* STORAGE */
     // The latest task index
@@ -41,7 +43,6 @@ contract OpenOracleTaskManager is
     mapping(uint32 => bytes32) public allTaskResponses;
 
     address public aggregator;
-    address public generator;
 
     /* MODIFIERS */
     modifier onlyAggregator() {
@@ -49,10 +50,22 @@ contract OpenOracleTaskManager is
         _;
     }
 
-    // onlyTaskGenerator is used to restrict createNewTask from only being called by a permissioned entity
-    // in a real world scenario, this would be removed by instead making createNewTask a payable function
-    modifier onlyTaskGenerator() {
-        require(msg.sender == generator, "Task generator must be the caller");
+    modifier paysTaskCreationFee(uint totalRequests) {
+        require(msg.value >= taskCreationFee * totalRequests, "Creating a task requires a fee.");
+        _;
+    }
+
+    modifier onlyTaskCreator(uint32 taskNum, Task memory task) {
+        require(
+            taskNum <= latestTaskNum,
+            "task number not exists"
+        );
+        require(
+            keccak256(abi.encode(task)) ==
+                allTaskHashes[taskNum],
+            "supplied task does not match the one recorded in the contract"
+        );
+        require(task.creator == msg.sender, "Only the task creator can perform this operation.");
         _;
     }
 
@@ -65,14 +78,10 @@ contract OpenOracleTaskManager is
 
     function initialize(
         IPauserRegistry _pauserRegistry,
-        address initialOwner,
-        address _aggregator,
-        address _generator
+        address initialOwner
     ) public initializer {
         _initializePauser(_pauserRegistry, UNPAUSE_ALL);
         _transferOwnership(initialOwner);
-        aggregator = _aggregator;
-        generator = _generator;
     }
 
     /* FUNCTIONS */
@@ -81,18 +90,25 @@ contract OpenOracleTaskManager is
         uint256 goldPriceTimestamp,
         uint32 quorumThresholdPercentage,
         bytes calldata quorumNumbers
-    ) external onlyTaskGenerator {
+    ) external payable paysTaskCreationFee(1) {
         // create a new task struct
         Task memory newTask;
         newTask.goldPriceTimestamp = goldPriceTimestamp;
         newTask.taskCreatedBlock = uint32(block.number);
         newTask.quorumThresholdPercentage = quorumThresholdPercentage;
         newTask.quorumNumbers = quorumNumbers;
+        newTask.creator = payable(msg.sender);
+        newTask.creationFee = msg.value;
 
         // store hash of task onchain, emit event, and increase taskNum
         allTaskHashes[latestTaskNum] = keccak256(abi.encode(newTask));
         emit NewTaskCreated(latestTaskNum, newTask);
         latestTaskNum = latestTaskNum + 1;
+
+        // Refund any excess payment
+        if (msg.value > taskCreationFee) {
+            payable(msg.sender).transfer(msg.value - taskCreationFee);
+        }
     }
 
     // NOTE: this function responds to existing tasks.
@@ -161,6 +177,35 @@ contract OpenOracleTaskManager is
 
         // emitting event
         emit TaskResponded(taskResponse, taskResponseMetadata);
+    }
+
+
+    function withdrawTaskFunds(uint32 taskNum, Task memory task) external onlyTaskCreator(taskNum, task) {
+        require(
+            allTaskResponses[taskNum] != bytes32(0),
+            "Cannot withdraw funds for a completed task."
+        );
+        require(task.creationFee > 0, "No funds to withdraw.");
+
+        uint amountToWithdraw = task.creationFee;
+        task.creationFee = 0; // Prevent re-entrancy
+        allTaskHashes[taskNum] = keccak256(abi.encode(task));
+
+        (bool success, ) = task.creator.call{value: amountToWithdraw}("");
+        require(success, "Withdrawal failed.");
+
+        emit FundsWithdrawn(taskNum, msg.sender, amountToWithdraw);
+    }
+
+
+    // Function to update the task creation fee, restricted to owner
+    function updateTaskCreationFee(uint _newFee) external onlyOwner {
+        taskCreationFee = _newFee;
+    }
+
+    // Function to allow the contract owner to withdraw the balance
+    function withdraw() external onlyOwner {
+        payable(msg.sender).transfer(address(this).balance);
     }
 
     function taskNumber() external view returns (uint32) {

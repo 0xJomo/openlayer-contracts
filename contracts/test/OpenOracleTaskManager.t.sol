@@ -15,8 +15,6 @@ contract OpenOracleTaskManagerTest is BLSMockAVSDeployer {
     uint32 public constant TASK_RESPONSE_WINDOW_BLOCK = 30;
     address aggregator =
         address(uint160(uint256(keccak256(abi.encodePacked("aggregator")))));
-    address generator =
-        address(uint160(uint256(keccak256(abi.encodePacked("generator")))));
 
     function setUp() public {
         _setUpBLSMockAVSDeployer();
@@ -36,8 +34,7 @@ contract OpenOracleTaskManagerTest is BLSMockAVSDeployer {
                         tm.initialize.selector,
                         pauserRegistry,
                         registryCoordinatorOwner,
-                        aggregator,
-                        generator
+                        aggregator
                     )
                 )
             )
@@ -46,7 +43,6 @@ contract OpenOracleTaskManagerTest is BLSMockAVSDeployer {
 
     function testCreateNewTask() public {
         bytes memory quorumNumbers = new bytes(0);
-        cheats.prank(generator, generator);
         tm.createNewTask(2, 100, quorumNumbers);
         assertEq(tm.latestTaskNum(), 1);
     }

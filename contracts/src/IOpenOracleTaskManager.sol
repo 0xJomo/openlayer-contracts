@@ -14,6 +14,8 @@ interface IOpenOracleTaskManager {
 
     event TaskCompleted(uint32 indexed taskIndex);
 
+    event FundsWithdrawn(uint taskNum, address creator, uint amount);
+
     // STRUCTS
     struct Task {
         uint256 goldPriceTimestamp;
@@ -26,6 +28,8 @@ interface IOpenOracleTaskManager {
         // note that we set the quorumThresholdPercentage to be the same for all quorumNumbers, but this could be changed
         bytes quorumNumbers;
         uint32 quorumThresholdPercentage;
+        address payable creator;
+        uint creationFee;
     }
 
     // Task response is hashed and signed by operators.
@@ -51,7 +55,7 @@ interface IOpenOracleTaskManager {
         uint256 goldPriceTimestamp,
         uint32 quorumThresholdPercentage,
         bytes calldata quorumNumbers
-    ) external;
+    ) external payable;
 
     /// @notice Returns the current 'taskNumber' for the middleware
     function taskNumber() external view returns (uint32);
