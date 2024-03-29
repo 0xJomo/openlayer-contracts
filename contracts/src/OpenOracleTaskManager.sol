@@ -89,13 +89,13 @@ contract OpenOracleTaskManager is
     /* FUNCTIONS */
     // NOTE: this function creates new task, assigns it a taskId
     function createNewTask(
-        uint256 goldPriceTimestamp,
+        uint8 metalType,
         uint32 quorumThresholdPercentage,
         bytes calldata quorumNumbers
     ) external payable paysTaskCreationFee(1) {
         // create a new task struct
         Task memory newTask;
-        newTask.goldPriceTimestamp = goldPriceTimestamp;
+        newTask.metalType = metalType;
         newTask.taskCreatedBlock = uint32(block.number);
         newTask.quorumThresholdPercentage = quorumThresholdPercentage;
         newTask.quorumNumbers = quorumNumbers;
