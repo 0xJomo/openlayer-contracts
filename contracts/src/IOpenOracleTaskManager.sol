@@ -38,7 +38,7 @@ interface IOpenOracleTaskManager {
         // Can be obtained by the operator from the event NewTaskCreated.
         uint32 referenceTaskIndex;
         // This is just the response that the operator has to compute by itself.
-        uint256 price;
+        uint256 result;
         // This is just the response that the operator has to compute by itself.
         uint256 timeStamp;
     }
