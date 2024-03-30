@@ -18,7 +18,7 @@ interface IOpenOracleTaskManager {
 
     // STRUCTS
     struct Task {
-        uint8 metalType;
+        uint8 taskType;
         uint32 taskCreatedBlock;
         // task submitter decides on the criteria for a task to be completed
         // note that this does not mean the task was "correctly" answered
@@ -54,7 +54,7 @@ interface IOpenOracleTaskManager {
     // FUNCTIONS
     // NOTE: this function creates new task.
     function createNewTask(
-        uint8 metalType,
+        uint8 taskType,
         uint32 quorumThresholdPercentage,
         bytes calldata quorumNumbers
     ) external payable;
