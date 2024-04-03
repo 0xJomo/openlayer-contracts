@@ -4,6 +4,7 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
 import "@eigenlayer/contracts/permissions/PauserRegistry.sol";
+import {IAVSDirectory} from "@eigenlayer/contracts/interfaces/IAVSDirectory.sol";
 import {IDelegationManager} from "@eigenlayer/contracts/interfaces/IDelegationManager.sol";
 import {IStrategyManager, IStrategy} from "@eigenlayer/contracts/interfaces/IStrategyManager.sol";
 import {ISlasher} from "@eigenlayer/contracts/interfaces/ISlasher.sol";
@@ -86,6 +87,12 @@ contract OpenOracleDeployer is Script, Utils {
                 ".addresses.delegation"
             )
         );
+        IAVSDirectory avsDirectory = IAVSDirectory(
+            stdJson.readAddress(
+                eigenlayerDeployedContracts,
+                ".addresses.avsDirectory"
+            )
+        );
         ProxyAdmin eigenLayerProxyAdmin = ProxyAdmin(
             stdJson.readAddress(
                 eigenlayerDeployedContracts,
@@ -116,6 +123,7 @@ contract OpenOracleDeployer is Script, Utils {
             strategyManager
         );
         _deployOpenOracleContracts(
+            avsDirectory,
             delegationManager,
             erc20MockStrategy,
             openOracleCommunityMultisig,
@@ -150,10 +158,12 @@ contract OpenOracleDeployer is Script, Utils {
         );
         IStrategy[] memory strats = new IStrategy[](1);
         strats[0] = erc20MockStrategy;
-        strategyManager.addStrategiesToDepositWhitelist(strats);
+        bool[] memory thirdPartyTransfersForbiddenValues = new bool[](1);
+        strategyManager.addStrategiesToDepositWhitelist(strats, thirdPartyTransfersForbiddenValues);
     }
 
     function _deployOpenOracleContracts(
+        IAVSDirectory avsDirectory,
         IDelegationManager delegationManager,
         IStrategy strat,
         address openOracleCommunityMultisig,
@@ -342,7 +352,7 @@ contract OpenOracleDeployer is Script, Utils {
         }
 
         openOracleServiceManagerImplementation = new OpenOracleServiceManager(
-            delegationManager,
+            avsDirectory,
             registryCoordinator,
             stakeRegistry,
             openOracleTaskManager
