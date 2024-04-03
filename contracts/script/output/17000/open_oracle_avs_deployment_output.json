@@ -2,12 +2,12 @@
   "addresses": {
     "erc20Mock": "0x0000000000000000000000000000000000000000",
     "erc20MockStrategy": "0x0000000000000000000000000000000000000000",
-    "openOracleServiceManager": "0x64f5f2d5dc57380a1a7Cd3978D7D462506EA9A3f",
-    "openOracleServiceManagerImplementation": "0x16908409af88293325D9682B474868D164D5D929",
-    "openOracleTaskManager": "0x818dEFe732e7ADD94B04AC0AE1cAEbbc4cD2c460",
-    "openOracleTaskManagerImplementation": "0x0Ea74a43D72Dce3f79cC7F9E918FF20d66415064",
-    "operatorStateRetriever": "0x644Bd8cC538153855984791739dD1b18c4c458B1",
-    "registryCoordinator": "0x5eF81E2D60BFf77A999bfe83b5D028bE6504A74F",
-    "registryCoordinatorImplementation": "0x24429c8a6B3c58196b351A4363Be64465B0BACa5"
+    "openOracleServiceManager": "0xED98BBcF142307BE6e82897AEc6E9642540f9e6d",
+    "openOracleServiceManagerImplementation": "0xbE07BBA593D311987382D4eF97C077109b614174",
+    "openOracleTaskManager": "0x103C248d216E83B9024c495850b0F7d926D9D7E1",
+    "openOracleTaskManagerImplementation": "0x08259A52CE9d62ab45E7f93fD32d28BF8B7E7323",
+    "operatorStateRetriever": "0x0EAC915518901a314e20DC223c5b9ff848c27B2a",
+    "registryCoordinator": "0xa600faeAF17C754cd9d197a9522c9aeb5FFb6B27",
+    "registryCoordinatorImplementation": "0xD65FE9D0659840b50585F5D93f925038614d247B"
   }
 }
