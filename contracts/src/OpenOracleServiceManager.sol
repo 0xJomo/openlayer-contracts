@@ -28,13 +28,7 @@ contract OpenOracleServiceManager is ServiceManagerBase {
         IRegistryCoordinator _registryCoordinator,
         IStakeRegistry _stakeRegistry,
         IOpenOracleTaskManager _openOracleTaskManager
-    )
-        ServiceManagerBase(
-            _avsDirectory,
-            _registryCoordinator,
-            _stakeRegistry
-        )
-    {
+    ) ServiceManagerBase(_avsDirectory, _registryCoordinator, _stakeRegistry) {
         openOracleTaskManager = _openOracleTaskManager;
     }
 

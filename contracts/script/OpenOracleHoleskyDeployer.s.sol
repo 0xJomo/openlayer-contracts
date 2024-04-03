@@ -88,7 +88,10 @@ contract OpenOracleDeployer is Script, Utils {
             )
         );
         IAVSDirectory avsDirectory = IAVSDirectory(
-            stdJson.readAddress(eigenlayerDeployedContracts, ".addresses.avsDirectory")
+            stdJson.readAddress(
+                eigenlayerDeployedContracts,
+                ".addresses.avsDirectory"
+            )
         );
 
         address openOracleCommunityMultisig = msg.sender;
@@ -229,7 +232,7 @@ contract OpenOracleDeployer is Script, Utils {
         }
 
         registryCoordinatorImplementation = new regcoord.RegistryCoordinator(
-            openOracleServiceManager,
+            regcoord.IServiceManager(address(openOracleServiceManager)),
             regcoord.IStakeRegistry(address(stakeRegistry)),
             regcoord.IBLSApkRegistry(address(blsApkRegistry)),
             regcoord.IIndexRegistry(address(indexRegistry))
