@@ -93,6 +93,12 @@ contract OpenOracleDeployer is Script, Utils {
                 ".addresses.avsDirectory"
             )
         );
+        ProxyAdmin eigenLayerProxyAdmin = ProxyAdmin(
+            stdJson.readAddress(
+                eigenlayerDeployedContracts,
+                ".addresses.avsDirectory"
+            )
+        );
 
         address openOracleCommunityMultisig = msg.sender;
         address openOraclePauser = msg.sender;
@@ -107,6 +113,39 @@ contract OpenOracleDeployer is Script, Utils {
             openOraclePauser
         );
         vm.stopBroadcast();
+    }
+
+    function _deployErc20AndStrategyAndWhitelistStrategy(
+        ProxyAdmin eigenLayerProxyAdmin,
+        PauserRegistry eigenLayerPauserReg,
+        StrategyBaseTVLLimits baseStrategyImplementation,
+        IStrategyManager strategyManager
+    ) internal {
+        erc20Mock = new ERC20Mock();
+        // TODO(samlaf): any reason why we are using the strategybase with tvl limits instead of just using strategybase?
+        // the maxPerDeposit and maxDeposits below are just arbitrary values.
+        erc20MockStrategy = StrategyBaseTVLLimits(
+            address(
+                new TransparentUpgradeableProxy(
+                    address(baseStrategyImplementation),
+                    address(eigenLayerProxyAdmin),
+                    abi.encodeWithSelector(
+                        StrategyBaseTVLLimits.initialize.selector,
+                        1 ether, // maxPerDeposit
+                        100 ether, // maxDeposits
+                        IERC20(erc20Mock),
+                        eigenLayerPauserReg
+                    )
+                )
+            )
+        );
+        IStrategy[] memory strats = new IStrategy[](1);
+        strats[0] = erc20MockStrategy;
+        bool[] memory thirdPartyTransfersForbiddenValues = new bool[](1);
+        strategyManager.addStrategiesToDepositWhitelist(
+            strats,
+            thirdPartyTransfersForbiddenValues
+        );
     }
 
     function _deployOpenOracleContracts(
