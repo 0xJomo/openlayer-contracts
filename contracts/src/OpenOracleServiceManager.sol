@@ -24,18 +24,22 @@ contract OpenOracleServiceManager is ServiceManagerBase {
     }
 
     constructor(
-        IDelegationManager _delegationManager,
+        IAVSDirectory _avsDirectory,
         IRegistryCoordinator _registryCoordinator,
         IStakeRegistry _stakeRegistry,
         IOpenOracleTaskManager _openOracleTaskManager
     )
         ServiceManagerBase(
-            _delegationManager,
+            _avsDirectory,
             _registryCoordinator,
             _stakeRegistry
         )
     {
         openOracleTaskManager = _openOracleTaskManager;
+    }
+
+    function initialize(address initialOwner) public virtual initializer {
+        __ServiceManagerBase_init(initialOwner);
     }
 
     /// @notice Called in the event of challenge resolution, in order to forward a call to the Slasher, which 'freezes' the `operator`.

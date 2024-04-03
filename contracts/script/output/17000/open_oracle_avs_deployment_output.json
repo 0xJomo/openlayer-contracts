@@ -1,0 +1,13 @@
+{
+  "addresses": {
+    "erc20Mock": "0x0000000000000000000000000000000000000000",
+    "erc20MockStrategy": "0x0000000000000000000000000000000000000000",
+    "openOracleServiceManager": "0x64f5f2d5dc57380a1a7Cd3978D7D462506EA9A3f",
+    "openOracleServiceManagerImplementation": "0x16908409af88293325D9682B474868D164D5D929",
+    "openOracleTaskManager": "0x818dEFe732e7ADD94B04AC0AE1cAEbbc4cD2c460",
+    "openOracleTaskManagerImplementation": "0x0Ea74a43D72Dce3f79cC7F9E918FF20d66415064",
+    "operatorStateRetriever": "0x644Bd8cC538153855984791739dD1b18c4c458B1",
+    "registryCoordinator": "0x5eF81E2D60BFf77A999bfe83b5D028bE6504A74F",
+    "registryCoordinatorImplementation": "0x24429c8a6B3c58196b351A4363Be64465B0BACa5"
+  }
+}
