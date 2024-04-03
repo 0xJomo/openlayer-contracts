@@ -4,6 +4,7 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
 import "@eigenlayer/contracts/permissions/PauserRegistry.sol";
+import {IAVSDirectory} from "@eigenlayer/contracts/interfaces/IAVSDirectory.sol";
 import {IDelegationManager} from "@eigenlayer/contracts/interfaces/IDelegationManager.sol";
 import {IStrategyManager, IStrategy} from "@eigenlayer/contracts/interfaces/IStrategyManager.sol";
 import {ISlasher} from "@eigenlayer/contracts/interfaces/ISlasher.sol";
@@ -83,39 +84,23 @@ contract OpenOracleDeployer is Script, Utils {
         IDelegationManager delegationManager = IDelegationManager(
             stdJson.readAddress(
                 eigenlayerDeployedContracts,
-                ".addresses.delegation"
+                ".addresses.delegationManager"
             )
         );
-        ProxyAdmin eigenLayerProxyAdmin = ProxyAdmin(
+        IAVSDirectory avsDirectory = IAVSDirectory(
             stdJson.readAddress(
                 eigenlayerDeployedContracts,
-                ".addresses.eigenLayerProxyAdmin"
+                ".addresses.avsDirectory"
             )
         );
-        PauserRegistry eigenLayerPauserReg = PauserRegistry(
-            stdJson.readAddress(
-                eigenlayerDeployedContracts,
-                ".addresses.eigenLayerPauserReg"
-            )
-        );
-        StrategyBaseTVLLimits baseStrategyImplementation = StrategyBaseTVLLimits(
-                stdJson.readAddress(
-                    eigenlayerDeployedContracts,
-                    ".addresses.baseStrategyImplementation"
-                )
-            );
 
         address openOracleCommunityMultisig = msg.sender;
         address openOraclePauser = msg.sender;
 
         vm.startBroadcast();
-        _deployErc20AndStrategyAndWhitelistStrategy(
-            eigenLayerProxyAdmin,
-            eigenLayerPauserReg,
-            baseStrategyImplementation,
-            strategyManager
-        );
+
         _deployOpenOracleContracts(
+            avsDirectory,
             delegationManager,
             erc20MockStrategy,
             openOracleCommunityMultisig,
@@ -124,36 +109,8 @@ contract OpenOracleDeployer is Script, Utils {
         vm.stopBroadcast();
     }
 
-    function _deployErc20AndStrategyAndWhitelistStrategy(
-        ProxyAdmin eigenLayerProxyAdmin,
-        PauserRegistry eigenLayerPauserReg,
-        StrategyBaseTVLLimits baseStrategyImplementation,
-        IStrategyManager strategyManager
-    ) internal {
-        erc20Mock = new ERC20Mock();
-        // TODO(samlaf): any reason why we are using the strategybase with tvl limits instead of just using strategybase?
-        // the maxPerDeposit and maxDeposits below are just arbitrary values.
-        erc20MockStrategy = StrategyBaseTVLLimits(
-            address(
-                new TransparentUpgradeableProxy(
-                    address(baseStrategyImplementation),
-                    address(eigenLayerProxyAdmin),
-                    abi.encodeWithSelector(
-                        StrategyBaseTVLLimits.initialize.selector,
-                        1 ether, // maxPerDeposit
-                        100 ether, // maxDeposits
-                        IERC20(erc20Mock),
-                        eigenLayerPauserReg
-                    )
-                )
-            )
-        );
-        IStrategy[] memory strats = new IStrategy[](1);
-        strats[0] = erc20MockStrategy;
-        strategyManager.addStrategiesToDepositWhitelist(strats);
-    }
-
     function _deployOpenOracleContracts(
+        IAVSDirectory avsDirectory,
         IDelegationManager delegationManager,
         IStrategy strat,
         address openOracleCommunityMultisig,
@@ -275,7 +232,7 @@ contract OpenOracleDeployer is Script, Utils {
         }
 
         registryCoordinatorImplementation = new regcoord.RegistryCoordinator(
-            openOracleServiceManager,
+            regcoord.IServiceManager(address(openOracleServiceManager)),
             regcoord.IStakeRegistry(address(stakeRegistry)),
             regcoord.IBLSApkRegistry(address(blsApkRegistry)),
             regcoord.IIndexRegistry(address(indexRegistry))
@@ -342,7 +299,7 @@ contract OpenOracleDeployer is Script, Utils {
         }
 
         openOracleServiceManagerImplementation = new OpenOracleServiceManager(
-            delegationManager,
+            avsDirectory,
             registryCoordinator,
             stakeRegistry,
             openOracleTaskManager
