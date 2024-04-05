@@ -43,7 +43,7 @@ contract OpenOracleTaskManagerTest is BLSMockAVSDeployer {
 
     function testCreateNewTask() public {
         bytes memory quorumNumbers = new bytes(0);
-        tm.createNewTask(2, 100, quorumNumbers);
+        tm.createNewTask(2, 5, 1);
         assertEq(tm.latestTaskNum(), 1);
     }
 }

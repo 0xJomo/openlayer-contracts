@@ -94,15 +94,15 @@ contract OpenOracleTaskManager is
     // NOTE: this function creates new task, assigns it a taskId
     function createNewTask(
         uint8 taskType,
-        uint32 quorumThresholdPercentage,
-        bytes calldata quorumNumbers
+        uint8 responderNumber,
+        uint96 stakeThreshold
     ) external payable paysTaskCreationFee(1) {
         // create a new task struct
         Task memory newTask;
         newTask.taskType = taskType;
         newTask.taskCreatedBlock = uint32(block.number);
-        newTask.quorumThresholdPercentage = quorumThresholdPercentage;
-        newTask.quorumNumbers = quorumNumbers;
+        newTask.stakeThreshold = stakeThreshold;
+        newTask.responderNumber = responderNumber;
         newTask.creator = payable(msg.sender);
         newTask.creationFee = msg.value;
 
@@ -120,7 +120,8 @@ contract OpenOracleTaskManager is
     // NOTE: this function responds to existing tasks.
     function respondToTask(
         Task calldata task,
-        OperatorResponse[] calldata responses
+        OperatorResponse[] calldata responses,
+        WeightedTaskResponse calldata weightedTaskResponse
     ) external onlyAggregator {
         uint32 taskCreatedBlock = task.taskCreatedBlock;
 
@@ -135,21 +136,15 @@ contract OpenOracleTaskManager is
             "Operator responses should not be empty"
         );
 
-        uint32 referenceTaskIndex = responses[0].response.referenceTaskIndex;
-
         require(
-            keccak256(abi.encode(task)) == allTaskHashes[referenceTaskIndex],
+            keccak256(abi.encode(task)) == allTaskHashes[weightedTaskResponse.referenceTaskIndex],
             "supplied task does not match the one recorded in the contract"
         );
 
         require(
-            allTaskResponses[referenceTaskIndex] == bytes32(0),
+            allTaskResponses[weightedTaskResponse.referenceTaskIndex] == bytes32(0),
             "Aggregator has already responded to the task"
         );
-
-        uint256 totalResult = 0;
-        uint256 totalTimestamp = 0;
-        uint256 totalWeight = 0;
 
         // check that the task is valid, hasn't been responsed yet, and is being responsed in time
         for (uint i = 0; i < responses.length; i++) {
@@ -163,44 +158,22 @@ contract OpenOracleTaskManager is
             );
 
             require(
-                responses[i].response.referenceTaskIndex == referenceTaskIndex,
+                responses[i].response.referenceTaskIndex == weightedTaskResponse.referenceTaskIndex,
                 "Aggregator response task indices should be consistent"
             );
-
-            uint256 weight = sqrt(stakeRegistry.weightOfOperatorForQuorum(_TASKRESPONSE_QUORUM_NUMBER, responses[i].operator));
-
-            totalWeight += weight;
-            totalResult += responses[i].response.result * weight;
-            totalTimestamp += responses[i].response.timeStamp * weight;
         }
-
-        require(
-            totalWeight > 0,
-            "Operator doesn't have sufficient stakes"
-        );
-
-        uint256 avgResult = totalResult / totalWeight;
-        uint256 avgTimestamp = totalTimestamp / totalWeight;
-
-        TaskResponse memory taskResponse = TaskResponse({
-            referenceTaskIndex: referenceTaskIndex,
-            result: avgResult,
-            timeStamp: avgTimestamp
-        });
-
 
         TaskResponseMetadata memory taskResponseMetadata = TaskResponseMetadata(
             uint32(block.number)
         );
         // updating the storage with weighted task responsea
-        allTaskResponses[taskResponse.referenceTaskIndex] = keccak256(
-            abi.encode(taskResponse, taskResponseMetadata)
+        allTaskResponses[weightedTaskResponse.referenceTaskIndex] = keccak256(
+            abi.encode(weightedTaskResponse, taskResponseMetadata)
         );
 
         // emitting event
-        emit TaskResponded(taskResponse, taskResponseMetadata);
+        emit TaskResponded(weightedTaskResponse, taskResponseMetadata);
     }
-
 
     function withdrawTaskFunds(uint32 taskNum, Task memory task) external onlyTaskCreator(taskNum, task) {
         require(
@@ -217,20 +190,6 @@ contract OpenOracleTaskManager is
         require(success, "Withdrawal failed.");
 
         emit FundsWithdrawn(taskNum, msg.sender, amountToWithdraw);
-    }
-
-    function sqrt(uint256 y) internal pure returns (uint256 z) {
-        if (y > 3) {
-            z = y;
-            uint256 x = y / 2 + 1;
-            while (x < z) {
-                z = x;
-                x = (y / x + x) / 2;
-            }
-        } else if (y != 0) {
-            z = 1;
-        }
-        // else z = 0
     }
 
     // Function to update the task creation fee, restricted to owner
