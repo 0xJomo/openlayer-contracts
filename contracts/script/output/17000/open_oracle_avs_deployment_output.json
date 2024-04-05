@@ -1,20 +1,18 @@
 {
   "addresses": {
-    "blsApkRegistry": "0x0CfeD6a0BA97174f722507f0233d909D6db216Fa",
-    "blsApkRegistryImplementation": "0x075789Fa1c07a6f09F2Be4c21A640d76A1C1B2E3",
-    "erc20Mock": "0x0000000000000000000000000000000000000000",
-    "erc20MockStrategy": "0x0000000000000000000000000000000000000000",
-    "indexRegistry": "0x859822fc3D33B32235bB9E247f82817aAd6b7dA3",
-    "indexRegistryImplementation": "0x8E77471a3adD891306427eA28A7cE5fE019FF594",
-    "openOracleServiceManager": "0x469715e0fe2B59FEBda6A996Bd506b668Dd3DCdC",
-    "openOracleServiceManagerImplementation": "0x164Bfb8E3bf69747415d7347a4ce3190bdE80788",
-    "openOracleTaskManager": "0x4ADcF54294c45Cc91D34787F53A2862Aa47e0f90",
-    "openOracleTaskManagerImplementation": "0x2adee725152BDC8F4f0aD31E46F0C97c28B36d4A",
-    "operatorStateRetriever": "0xe26aE610a43dA17A374FD3DAdDB5989B3E73E79c",
-    "proxyAdmin": "0x73679F7f78488E2832cAE54a8E154b9208286c02",
-    "registryCoordinator": "0x8b9373283a8c812A737592D5D644eAFfB1B89D80",
-    "registryCoordinatorImplementation": "0x77F161C75450723EEccc61833BA5CCb751d9B525",
-    "stakeRegistry": "0xC7b1117Bd1a954d3E65CE3396Cd0DF5B162e2357",
-    "stakeRegistryImplementation": "0x98B93DcB3473f2F4e5055bA3DC2304dd10CaDC96"
+    "blsApkRegistry": "0x4C034919BAA0fE80F4Def057214A67Ee9183181c",
+    "blsApkRegistryImplementation": "0x50cC9f49891daA0c8266182406bef56C20b82Aff",
+    "indexRegistry": "0xd79B4dfF9b32e7829676F1a30FC6d883062caCda",
+    "indexRegistryImplementation": "0x98aD9F945b75010b51974977C1Ff8b4BBad3E4eC",
+    "openOracleServiceManager": "0xF9B555d1D5be5c24ad9B11a87409d7107a8b6174",
+    "openOracleServiceManagerImplementation": "0x52caE460a17C2209D23c27fC501964f2253689B5",
+    "openOracleTaskManager": "0xd019a78a19F8Ae1DCB5CD188620BCBC8fd3C8090",
+    "openOracleTaskManagerImplementation": "0x9f185aFD133bE6c27b026DeBf35888Aeb7086904",
+    "operatorStateRetriever": "0x12ddeDbB47340e6702529197cB593204A4aFa318",
+    "proxyAdmin": "0xC71bF90BD3d3540FAf5D51ee7436797362774a52",
+    "registryCoordinator": "0xE0315CCaF46A736BFAB173670CBcC97bE65Eb414",
+    "registryCoordinatorImplementation": "0x9A1e1F27924854A0eF181255115d830D0d229829",
+    "stakeRegistry": "0x409347e909e5aeB4B273d2668fEac6F423582BbD",
+    "stakeRegistryImplementation": "0x9313fE3DB30D761DA9C1e662C4235742FB963fc0"
   }
 }

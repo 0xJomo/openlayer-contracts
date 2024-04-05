@@ -1,13 +1,18 @@
 {
   "addresses": {
-    "erc20Mock": "0x0000000000000000000000000000000000000000",
-    "erc20MockStrategy": "0x0000000000000000000000000000000000000000",
+    "blsApkRegistry": "0x84eA74d481Ee0A5332c457a4d796187F6Ba67fEB",
+    "blsApkRegistryImplementation": "0x95401dc811bb5740090279Ba06cfA8fcF6113778",
+    "indexRegistry": "0x9E545E3C0baAB3E08CdfD552C960A1050f373042",
+    "indexRegistryImplementation": "0x70e0bA845a1A0F2DA3359C97E0285013525FFC49",
     "openOracleServiceManager": "0x67d269191c92Caf3cD7723F116c85e6E9bf55933",
     "openOracleServiceManagerImplementation": "0x8f86403A4DE0BB5791fa46B8e795C547942fE4Cf",
     "openOracleTaskManager": "0xE6E340D132b5f46d1e472DebcD681B2aBc16e57E",
     "openOracleTaskManagerImplementation": "0x5eb3Bc0a489C5A8288765d2336659EbCA68FCd00",
     "operatorStateRetriever": "0x1613beB3B2C4f22Ee086B2b38C1476A3cE7f78E8",
+    "proxyAdmin": "0x7a2088a1bFc9d81c55368AE168C2C02570cB814F",
     "registryCoordinator": "0xc3e53F4d16Ae77Db1c982e75a937B9f60FE63690",
-    "registryCoordinatorImplementation": "0x99bbA657f2BbC93c02D617f8bA121cB8Fc104Acf"
+    "registryCoordinatorImplementation": "0x99bbA657f2BbC93c02D617f8bA121cB8Fc104Acf",
+    "stakeRegistry": "0xa82fF9aFd8f496c3d6ac40E2a0F282E47488CFc9",
+    "stakeRegistryImplementation": "0x851356ae760d987E095750cCeb3bC6014560891C"
   }
 }

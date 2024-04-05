@@ -33,6 +33,8 @@ import "forge-std/console.sol";
 // # To deploy and verify our contract
 // forge script script/OpenOracleDeployer.s.sol:OpenOracleDeployer --rpc-url http://127.0.0.1:8545  --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 --broadcast -vvvv
 contract OpenOracleDeployer is Script, Utils {
+    string public deployConfigPath = string(bytes("./script/config/devnet/testnet.config.json"));
+
     // DEPLOYMENT CONSTANTS
     uint256 public constant QUORUM_THRESHOLD_PERCENTAGE = 100;
     uint32 public constant TASK_RESPONSE_WINDOW_BLOCK = 30;
@@ -40,11 +42,6 @@ contract OpenOracleDeployer is Script, Utils {
     // TODO: right now hardcoding these (this address is anvil's default address 9)
     address public constant AGGREGATOR_ADDR =
         0xa0Ee7A142d267C1f36714E4a8F75612F20a79720;
-
-    // ERC20 and Strategy: we need to deploy this erc20, create a strategy for it, and whitelist this strategy in the strategymanager
-
-    ERC20Mock public erc20Mock;
-    StrategyBaseTVLLimits public erc20MockStrategy;
 
     // Credible Squaring contracts
     ProxyAdmin public openOracleProxyAdmin;
@@ -93,12 +90,6 @@ contract OpenOracleDeployer is Script, Utils {
                 ".addresses.avsDirectory"
             )
         );
-        ProxyAdmin eigenLayerProxyAdmin = ProxyAdmin(
-            stdJson.readAddress(
-                eigenlayerDeployedContracts,
-                ".addresses.avsDirectory"
-            )
-        );
 
         address openOracleCommunityMultisig = msg.sender;
         address openOraclePauser = msg.sender;
@@ -108,57 +99,26 @@ contract OpenOracleDeployer is Script, Utils {
         _deployOpenOracleContracts(
             avsDirectory,
             delegationManager,
-            erc20MockStrategy,
             openOracleCommunityMultisig,
             openOraclePauser
         );
         vm.stopBroadcast();
     }
 
-    function _deployErc20AndStrategyAndWhitelistStrategy(
-        ProxyAdmin eigenLayerProxyAdmin,
-        PauserRegistry eigenLayerPauserReg,
-        StrategyBaseTVLLimits baseStrategyImplementation,
-        IStrategyManager strategyManager
-    ) internal {
-        erc20Mock = new ERC20Mock();
-        // TODO(samlaf): any reason why we are using the strategybase with tvl limits instead of just using strategybase?
-        // the maxPerDeposit and maxDeposits below are just arbitrary values.
-        erc20MockStrategy = StrategyBaseTVLLimits(
-            address(
-                new TransparentUpgradeableProxy(
-                    address(baseStrategyImplementation),
-                    address(eigenLayerProxyAdmin),
-                    abi.encodeWithSelector(
-                        StrategyBaseTVLLimits.initialize.selector,
-                        1 ether, // maxPerDeposit
-                        100 ether, // maxDeposits
-                        IERC20(erc20Mock),
-                        eigenLayerPauserReg
-                    )
-                )
-            )
-        );
-        IStrategy[] memory strats = new IStrategy[](1);
-        strats[0] = erc20MockStrategy;
-        bool[] memory thirdPartyTransfersForbiddenValues = new bool[](1);
-        strategyManager.addStrategiesToDepositWhitelist(
-            strats,
-            thirdPartyTransfersForbiddenValues
-        );
-    }
-
     function _deployOpenOracleContracts(
         IAVSDirectory avsDirectory,
         IDelegationManager delegationManager,
-        IStrategy strat,
         address openOracleCommunityMultisig,
         address openOraclePauser
     ) internal {
-        // Adding this as a temporary fix to make the rest of the script work with a single strategy
-        // since it was originally written to work with an array of strategies
-        IStrategy[1] memory deployedStrategyArray = [strat];
-        uint numStrategies = deployedStrategyArray.length;
+        // READ JSON CONFIG DATA
+        string memory config_data = vm.readFile(deployConfigPath);
+
+        // parse initalization params and permissions from config data
+        (
+            uint96[] memory minimumStakeForQuourm, 
+            IStakeRegistry.StrategyParams[][] memory strategyAndWeightingMultipliers
+        ) = _parseStakeRegistryParams(config_data);
 
         // deploy proxy admin for ability to upgrade proxy contracts
         openOracleProxyAdmin = new ProxyAdmin();
@@ -290,33 +250,12 @@ contract OpenOracleDeployer is Script, Utils {
                 quorumsOperatorSetParams[i] = regcoord
                     .IRegistryCoordinator
                     .OperatorSetParam({
-                        maxOperatorCount: 10000,
-                        kickBIPsOfOperatorStake: 15000,
-                        kickBIPsOfTotalStake: 100
+                        maxOperatorCount: 200,
+                        kickBIPsOfOperatorStake: 11000,
+                        kickBIPsOfTotalStake: 50
                     });
             }
             // set to 0 for every quorum
-            uint96[] memory quorumsMinimumStake = new uint96[](numQuorums);
-            IStakeRegistry.StrategyParams[][]
-                memory quorumsStrategyParams = new IStakeRegistry.StrategyParams[][](
-                    numQuorums
-                );
-            for (uint i = 0; i < numQuorums; i++) {
-                quorumsStrategyParams[i] = new IStakeRegistry.StrategyParams[](
-                    numStrategies
-                );
-                for (uint j = 0; j < numStrategies; j++) {
-                    quorumsStrategyParams[i][j] = IStakeRegistry
-                        .StrategyParams({
-                            strategy: deployedStrategyArray[j],
-                            // setting this to 1 ether since the divisor is also 1 ether
-                            // therefore this allows an operator to register with even just 1 token
-                            // see https://github.com/Layr-Labs/eigenlayer-middleware/blob/m2-mainnet/src/StakeRegistry.sol#L484
-                            //    weight += uint96(sharesAmount * strategyAndMultiplier.multiplier / WEIGHTING_DIVISOR);
-                            multiplier: 1 ether
-                        });
-                }
-            }
             openOracleProxyAdmin.upgradeAndCall(
                 TransparentUpgradeableProxy(
                     payable(address(registryCoordinator))
@@ -325,14 +264,14 @@ contract OpenOracleDeployer is Script, Utils {
                 abi.encodeWithSelector(
                     regcoord.RegistryCoordinator.initialize.selector,
                     // we set churnApprover and ejector to communityMultisig because we don't need them
-                    openOracleCommunityMultisig,
-                    openOracleCommunityMultisig,
-                    openOracleCommunityMultisig,
+                    openOracleCommunityMultisig, // owner
+                    openOracleCommunityMultisig, // churner
+                    openOracleCommunityMultisig, // ejector
                     openOraclePauserReg,
                     0, // 0 initialPausedStatus means everything unpaused
                     quorumsOperatorSetParams,
-                    quorumsMinimumStake,
-                    quorumsStrategyParams
+                    minimumStakeForQuourm,
+                    strategyAndWeightingMultipliers
                 )
             );
         }
@@ -380,13 +319,8 @@ contract OpenOracleDeployer is Script, Utils {
         string memory deployed_addresses = "addresses";
         vm.serializeAddress(
             deployed_addresses,
-            "erc20Mock",
-            address(erc20Mock)
-        );
-        vm.serializeAddress(
-            deployed_addresses,
-            "erc20MockStrategy",
-            address(erc20MockStrategy)
+            "proxyAdmin",
+            address(openOracleProxyAdmin)
         );
         vm.serializeAddress(
             deployed_addresses,
@@ -407,6 +341,36 @@ contract OpenOracleDeployer is Script, Utils {
             deployed_addresses,
             "openOracleTaskManagerImplementation",
             address(openOracleTaskManagerImplementation)
+        );
+        vm.serializeAddress(
+            deployed_addresses,
+            "blsApkRegistry",
+            address(blsApkRegistry)
+        );
+        vm.serializeAddress(
+            deployed_addresses,
+            "blsApkRegistryImplementation",
+            address(blsApkRegistryImplementation)
+        );
+        vm.serializeAddress(
+            deployed_addresses,
+            "stakeRegistry",
+            address(stakeRegistry)
+        );
+        vm.serializeAddress(
+            deployed_addresses,
+            "stakeRegistryImplementation",
+            address(stakeRegistryImplementation)
+        );
+        vm.serializeAddress(
+            deployed_addresses,
+            "indexRegistry",
+            address(indexRegistry)
+        );
+        vm.serializeAddress(
+            deployed_addresses,
+            "indexRegistryImplementation",
+            address(indexRegistryImplementation)
         );
         vm.serializeAddress(
             deployed_addresses,
@@ -432,5 +396,13 @@ contract OpenOracleDeployer is Script, Utils {
         );
 
         writeOutput(finalJson, "open_oracle_avs_deployment_output");
+    }
+
+    function _parseStakeRegistryParams(string memory config_data) internal pure returns (uint96[] memory minimumStakeForQuourm, IStakeRegistry.StrategyParams[][] memory strategyAndWeightingMultipliers) {
+        bytes memory stakesConfigsRaw = stdJson.parseRaw(config_data, ".minimumStakes");
+        minimumStakeForQuourm = abi.decode(stakesConfigsRaw, (uint96[]));
+        
+        bytes memory strategyConfigsRaw = stdJson.parseRaw(config_data, ".strategyWeights");
+        strategyAndWeightingMultipliers = abi.decode(strategyConfigsRaw, (IStakeRegistry.StrategyParams[][]));
     }
 }
