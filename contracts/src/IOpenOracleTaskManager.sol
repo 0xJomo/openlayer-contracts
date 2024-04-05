@@ -43,12 +43,15 @@ interface IOpenOracleTaskManager {
         uint256 timeStamp;
     }
 
+    struct OperatorResponse {
+        address operator;
+        TaskResponse response;
+        bytes signature;
+    }
+
     // Extra information related to taskResponse, which is filled inside the contract.
-    // It thus cannot be signed by operators, so we keep it in a separate struct than TaskResponse
-    // This metadata is needed by the challenger, so we emit it in the TaskResponded event
     struct TaskResponseMetadata {
         uint32 taskResponsedBlock;
-        bytes32 hashOfNonSigners;
     }
 
     // FUNCTIONS
