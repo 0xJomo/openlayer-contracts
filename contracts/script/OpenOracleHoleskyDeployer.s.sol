@@ -341,6 +341,11 @@ contract OpenOracleDeployer is Script, Utils {
         string memory deployed_addresses = "addresses";
         vm.serializeAddress(
             deployed_addresses,
+            "proxyAdmin",
+            address(openOracleProxyAdmin)
+        );
+        vm.serializeAddress(
+            deployed_addresses,
             "erc20Mock",
             address(erc20Mock)
         );
@@ -368,6 +373,36 @@ contract OpenOracleDeployer is Script, Utils {
             deployed_addresses,
             "openOracleTaskManagerImplementation",
             address(openOracleTaskManagerImplementation)
+        );
+        vm.serializeAddress(
+            deployed_addresses,
+            "blsApkRegistry",
+            address(blsApkRegistry)
+        );
+        vm.serializeAddress(
+            deployed_addresses,
+            "blsApkRegistryImplementation",
+            address(blsApkRegistryImplementation)
+        );
+        vm.serializeAddress(
+            deployed_addresses,
+            "stakeRegistry",
+            address(stakeRegistry)
+        );
+        vm.serializeAddress(
+            deployed_addresses,
+            "stakeRegistryImplementation",
+            address(stakeRegistryImplementation)
+        );
+        vm.serializeAddress(
+            deployed_addresses,
+            "indexRegistry",
+            address(indexRegistry)
+        );
+        vm.serializeAddress(
+            deployed_addresses,
+            "indexRegistryImplementation",
+            address(indexRegistryImplementation)
         );
         vm.serializeAddress(
             deployed_addresses,

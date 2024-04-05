@@ -1,13 +1,20 @@
 {
   "addresses": {
+    "blsApkRegistry": "0x0CfeD6a0BA97174f722507f0233d909D6db216Fa",
+    "blsApkRegistryImplementation": "0x075789Fa1c07a6f09F2Be4c21A640d76A1C1B2E3",
     "erc20Mock": "0x0000000000000000000000000000000000000000",
     "erc20MockStrategy": "0x0000000000000000000000000000000000000000",
-    "openOracleServiceManager": "0x9975C43514a3cE583e65d7190584eD84716b1aA1",
-    "openOracleServiceManagerImplementation": "0x18446104784547264e1FbFeE795a4152B88e8938",
-    "openOracleTaskManager": "0xCb53Be44Ece844AFB91f9F111A5087AE3627Ac43",
-    "openOracleTaskManagerImplementation": "0x2E203c07C3D7660DD20CD557970959D292aE661A",
-    "operatorStateRetriever": "0x68D8f03697a8CBd40b8C4630803Cc23aDE7A9468",
-    "registryCoordinator": "0x4c6Aa3Dd84d6200c16A278692AD551F9d29a41d4",
-    "registryCoordinatorImplementation": "0x9b0D5A9AA58E306ACC6B99150dB91D4758a1D37C"
+    "indexRegistry": "0x859822fc3D33B32235bB9E247f82817aAd6b7dA3",
+    "indexRegistryImplementation": "0x8E77471a3adD891306427eA28A7cE5fE019FF594",
+    "openOracleServiceManager": "0x469715e0fe2B59FEBda6A996Bd506b668Dd3DCdC",
+    "openOracleServiceManagerImplementation": "0x164Bfb8E3bf69747415d7347a4ce3190bdE80788",
+    "openOracleTaskManager": "0x4ADcF54294c45Cc91D34787F53A2862Aa47e0f90",
+    "openOracleTaskManagerImplementation": "0x2adee725152BDC8F4f0aD31E46F0C97c28B36d4A",
+    "operatorStateRetriever": "0xe26aE610a43dA17A374FD3DAdDB5989B3E73E79c",
+    "proxyAdmin": "0x73679F7f78488E2832cAE54a8E154b9208286c02",
+    "registryCoordinator": "0x8b9373283a8c812A737592D5D644eAFfB1B89D80",
+    "registryCoordinatorImplementation": "0x77F161C75450723EEccc61833BA5CCb751d9B525",
+    "stakeRegistry": "0xC7b1117Bd1a954d3E65CE3396Cd0DF5B162e2357",
+    "stakeRegistryImplementation": "0x98B93DcB3473f2F4e5055bA3DC2304dd10CaDC96"
   }
 }
