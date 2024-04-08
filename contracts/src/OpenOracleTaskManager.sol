@@ -28,7 +28,7 @@ contract OpenOracleTaskManager is
     // The number of blocks from the task initialization within which the aggregator has to respond to
     uint32 public immutable TASK_RESPONSE_WINDOW_BLOCK;
     uint256 internal constant _THRESHOLD_DENOMINATOR = 100;
-    uint8 private constant _TASKRESPONSE_QUORUM_NUMBER = 1;
+    uint8 private constant _TASKRESPONSE_QUORUM_NUMBER = 0;
 
     // Fee for creating a task
     uint public taskCreationFee = 0.0001 ether; 
