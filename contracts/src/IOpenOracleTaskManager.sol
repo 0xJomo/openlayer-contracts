@@ -8,7 +8,7 @@ interface IOpenOracleTaskManager {
     event NewTaskCreated(uint32 indexed taskIndex, Task task);
 
     event TaskResponded(
-        TaskResponse taskResponse,
+        WeightedTaskResponse taskResponse,
         TaskResponseMetadata taskResponseMetadata
     );
 
@@ -20,14 +20,8 @@ interface IOpenOracleTaskManager {
     struct Task {
         uint8 taskType;
         uint32 taskCreatedBlock;
-        // task submitter decides on the criteria for a task to be completed
-        // note that this does not mean the task was "correctly" answered
-        //      this is for the challenge logic to verify
-        // task is completed (and contract will accept its TaskResponse) when each quorumNumbers specified here
-        // are signed by at least quorumThresholdPercentage of the operators
-        // note that we set the quorumThresholdPercentage to be the same for all quorumNumbers, but this could be changed
-        bytes quorumNumbers;
-        uint32 quorumThresholdPercentage;
+        uint8 responderNumber;
+        uint96 stakeThreshold;
         address payable creator;
         uint creationFee;
     }
@@ -43,20 +37,34 @@ interface IOpenOracleTaskManager {
         uint256 timeStamp;
     }
 
+    struct OperatorResponse {
+        address operator;
+        TaskResponse response;
+        bytes signature;
+    }
+
+    struct WeightedTaskResponse {
+        // Can be obtained by the operator from the event NewTaskCreated.
+        uint32 referenceTaskIndex;
+        // Weighted result from operator responses
+        uint256 result;
+        // Standard deviation for weighted result
+        uint256 sd;
+        // Timestamp for result
+        uint256 timeStamp;
+    }
+
     // Extra information related to taskResponse, which is filled inside the contract.
-    // It thus cannot be signed by operators, so we keep it in a separate struct than TaskResponse
-    // This metadata is needed by the challenger, so we emit it in the TaskResponded event
     struct TaskResponseMetadata {
         uint32 taskResponsedBlock;
-        bytes32 hashOfNonSigners;
     }
 
     // FUNCTIONS
     // NOTE: this function creates new task.
     function createNewTask(
         uint8 taskType,
-        uint32 quorumThresholdPercentage,
-        bytes calldata quorumNumbers
+        uint8 responderNumber,
+        uint96 stakeThreshold
     ) external payable;
 
     /// @notice Returns the current 'taskNumber' for the middleware

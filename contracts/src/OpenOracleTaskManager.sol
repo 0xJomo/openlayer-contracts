@@ -8,6 +8,7 @@ import "@eigenlayer-middleware/src/interfaces/IServiceManager.sol";
 import {BLSApkRegistry} from "@eigenlayer-middleware/src/BLSApkRegistry.sol";
 import {RegistryCoordinator} from "@eigenlayer-middleware/src/RegistryCoordinator.sol";
 import {BLSSignatureChecker, IRegistryCoordinator} from "@eigenlayer-middleware/src/BLSSignatureChecker.sol";
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {OperatorStateRetriever} from "@eigenlayer-middleware/src/OperatorStateRetriever.sol";
 import "@eigenlayer-middleware/src/libraries/BN254.sol";
 import "./IOpenOracleTaskManager.sol";
@@ -21,11 +22,14 @@ contract OpenOracleTaskManager is
     IOpenOracleTaskManager
 {
     using BN254 for BN254.G1Point;
+    using ECDSA for bytes32;
 
     /* CONSTANT */
     // The number of blocks from the task initialization within which the aggregator has to respond to
     uint32 public immutable TASK_RESPONSE_WINDOW_BLOCK;
     uint256 internal constant _THRESHOLD_DENOMINATOR = 100;
+    uint8 private constant _TASKRESPONSE_QUORUM_NUMBER = 0;
+
     // Fee for creating a task
     uint public taskCreationFee = 0.0001 ether; 
 
@@ -90,15 +94,15 @@ contract OpenOracleTaskManager is
     // NOTE: this function creates new task, assigns it a taskId
     function createNewTask(
         uint8 taskType,
-        uint32 quorumThresholdPercentage,
-        bytes calldata quorumNumbers
+        uint8 responderNumber,
+        uint96 stakeThreshold
     ) external payable paysTaskCreationFee(1) {
         // create a new task struct
         Task memory newTask;
         newTask.taskType = taskType;
         newTask.taskCreatedBlock = uint32(block.number);
-        newTask.quorumThresholdPercentage = quorumThresholdPercentage;
-        newTask.quorumNumbers = quorumNumbers;
+        newTask.stakeThreshold = stakeThreshold;
+        newTask.responderNumber = responderNumber;
         newTask.creator = payable(msg.sender);
         newTask.creationFee = msg.value;
 
@@ -116,71 +120,60 @@ contract OpenOracleTaskManager is
     // NOTE: this function responds to existing tasks.
     function respondToTask(
         Task calldata task,
-        TaskResponse calldata taskResponse,
-        NonSignerStakesAndSignature memory nonSignerStakesAndSignature
+        OperatorResponse[] calldata responses,
+        WeightedTaskResponse calldata weightedTaskResponse
     ) external onlyAggregator {
         uint32 taskCreatedBlock = task.taskCreatedBlock;
-        bytes calldata quorumNumbers = task.quorumNumbers;
-        uint32 quorumThresholdPercentage = task.quorumThresholdPercentage;
 
-        // check that the task is valid, hasn't been responsed yet, and is being responsed in time
-        require(
-            keccak256(abi.encode(task)) ==
-                allTaskHashes[taskResponse.referenceTaskIndex],
-            "supplied task does not match the one recorded in the contract"
-        );
-        // some logical checks
-        require(
-            allTaskResponses[taskResponse.referenceTaskIndex] == bytes32(0),
-            "Aggregator has already responded to the task"
-        );
         require(
             uint32(block.number) <=
                 taskCreatedBlock + TASK_RESPONSE_WINDOW_BLOCK,
             "Aggregator has responded to the task too late"
         );
 
-        /* CHECKING SIGNATURES & WHETHER THRESHOLD IS MET OR NOT */
-        // calculate message which operators signed
-        bytes32 message = keccak256(abi.encode(taskResponse));
+        require(
+            responses.length > 0,
+            "Operator responses should not be empty"
+        );
 
-        // check the BLS signature
-        (
-            QuorumStakeTotals memory quorumStakeTotals,
-            bytes32 hashOfNonSigners
-        ) = checkSignatures(
-                message,
-                quorumNumbers,
-                taskCreatedBlock,
-                nonSignerStakesAndSignature
+        require(
+            keccak256(abi.encode(task)) == allTaskHashes[weightedTaskResponse.referenceTaskIndex],
+            "supplied task does not match the one recorded in the contract"
+        );
+
+        require(
+            allTaskResponses[weightedTaskResponse.referenceTaskIndex] == bytes32(0),
+            "Aggregator has already responded to the task"
+        );
+
+        // check that the task is valid, hasn't been responsed yet, and is being responsed in time
+        for (uint i = 0; i < responses.length; i++) {
+            // Verify ECDSA signature
+            bytes32 messageHash = keccak256(abi.encode(responses[i].response));
+            bytes32 ethSignedMessageHash = messageHash.toEthSignedMessageHash();
+
+            require(
+                ethSignedMessageHash.recover(responses[i].signature) == responses[i].operator,
+                "Invalid signature or operator address"
             );
 
-        // check that signatories own at least a threshold percentage of each quourm
-        for (uint i = 0; i < quorumNumbers.length; i++) {
-            // we don't check that the quorumThresholdPercentages are not >100 because a greater value would trivially fail the check, implying
-            // signed stake > total stake
             require(
-                quorumStakeTotals.signedStakeForQuorum[i] *
-                    _THRESHOLD_DENOMINATOR >=
-                    quorumStakeTotals.totalStakeForQuorum[i] *
-                        uint8(quorumThresholdPercentage),
-                "Signatories do not own at least threshold percentage of a quorum"
+                responses[i].response.referenceTaskIndex == weightedTaskResponse.referenceTaskIndex,
+                "Aggregator response task indices should be consistent"
             );
         }
 
         TaskResponseMetadata memory taskResponseMetadata = TaskResponseMetadata(
-            uint32(block.number),
-            hashOfNonSigners
+            uint32(block.number)
         );
-        // updating the storage with task responsea
-        allTaskResponses[taskResponse.referenceTaskIndex] = keccak256(
-            abi.encode(taskResponse, taskResponseMetadata)
+        // updating the storage with weighted task responsea
+        allTaskResponses[weightedTaskResponse.referenceTaskIndex] = keccak256(
+            abi.encode(weightedTaskResponse, taskResponseMetadata)
         );
 
         // emitting event
-        emit TaskResponded(taskResponse, taskResponseMetadata);
+        emit TaskResponded(weightedTaskResponse, taskResponseMetadata);
     }
-
 
     function withdrawTaskFunds(uint32 taskNum, Task memory task) external onlyTaskCreator(taskNum, task) {
         require(
@@ -198,7 +191,6 @@ contract OpenOracleTaskManager is
 
         emit FundsWithdrawn(taskNum, msg.sender, amountToWithdraw);
     }
-
 
     // Function to update the task creation fee, restricted to owner
     function updateTaskCreationFee(uint _newFee) external onlyOwner {
