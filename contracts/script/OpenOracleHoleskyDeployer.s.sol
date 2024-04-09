@@ -32,7 +32,7 @@ import "forge-std/console.sol";
 
 // # To deploy and verify our contract
 // forge script script/OpenOracleDeployer.s.sol:OpenOracleDeployer --rpc-url http://127.0.0.1:8545  --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 --broadcast -vvvv
-contract OpenOracleDeployer is Script, Utils {
+contract OpenOracleHoleskyDeployer is Script, Utils {
     string public deployConfigPath = string(bytes("./script/config/holesky/testnet.config.json"));
 
     // DEPLOYMENT CONSTANTS
@@ -371,6 +371,11 @@ contract OpenOracleDeployer is Script, Utils {
             deployed_addresses,
             "indexRegistryImplementation",
             address(indexRegistryImplementation)
+        );
+        vm.serializeAddress(
+            deployed_addresses,
+            "pauserRegistry",
+            address(openOraclePauserReg)
         );
         vm.serializeAddress(
             deployed_addresses,

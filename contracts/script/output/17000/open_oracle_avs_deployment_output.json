@@ -13,6 +13,7 @@
     "registryCoordinator": "0xE0315CCaF46A736BFAB173670CBcC97bE65Eb414",
     "registryCoordinatorImplementation": "0x9A1e1F27924854A0eF181255115d830D0d229829",
     "stakeRegistry": "0x409347e909e5aeB4B273d2668fEac6F423582BbD",
-    "stakeRegistryImplementation": "0x9313fE3DB30D761DA9C1e662C4235742FB963fc0"
+    "stakeRegistryImplementation": "0x9313fE3DB30D761DA9C1e662C4235742FB963fc0",
+    "pauserRegistry": "0x9Ead9A21D56ACb2321dd0121FeE6C1995529560D"
   }
 }

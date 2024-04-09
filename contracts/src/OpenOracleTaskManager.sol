@@ -54,10 +54,10 @@ contract OpenOracleTaskManager is
         _;
     }
 
-    modifier paysTaskCreationFee(uint totalRequests) {
-        require(msg.value >= taskCreationFee * totalRequests, "Creating a task requires a fee.");
-        _;
-    }
+    // modifier paysTaskCreationFee(uint totalRequests) {
+    //     require(msg.value >= taskCreationFee * totalRequests, "Creating a task requires a fee.");
+    //     _;
+    // }
 
     modifier onlyTaskCreator(uint32 taskNum, Task memory task) {
         require(
@@ -90,13 +90,20 @@ contract OpenOracleTaskManager is
         aggregator = _aggregator;
     }
 
+    function updateAggregator(
+        address _aggregator
+    ) public onlyOwner {
+        aggregator = _aggregator;
+        emit AggregatorUpdated(aggregator);
+    }
+
     /* FUNCTIONS */
     // NOTE: this function creates new task, assigns it a taskId
     function createNewTask(
         uint8 taskType,
         uint8 responderThreshold,
         uint96 stakeThreshold
-    ) external payable paysTaskCreationFee(1) {
+    ) external {
         // create a new task struct
         Task memory newTask;
         newTask.taskType = taskType;
@@ -104,17 +111,17 @@ contract OpenOracleTaskManager is
         newTask.stakeThreshold = stakeThreshold;
         newTask.responderThreshold = responderThreshold;
         newTask.creator = payable(msg.sender);
-        newTask.creationFee = msg.value;
+        newTask.creationFee = 0; // msg.value;
 
         // store hash of task onchain, emit event, and increase taskNum
         allTaskHashes[latestTaskNum] = keccak256(abi.encode(newTask));
         emit NewTaskCreated(latestTaskNum, newTask);
         latestTaskNum = latestTaskNum + 1;
 
-        // Refund any excess payment
-        if (msg.value > taskCreationFee) {
-            payable(msg.sender).transfer(msg.value - taskCreationFee);
-        }
+        // // Refund any excess payment
+        // if (msg.value > taskCreationFee) {
+        //     payable(msg.sender).transfer(msg.value - taskCreationFee);
+        // }
     }
 
     // NOTE: this function responds to existing tasks.

@@ -16,6 +16,8 @@ interface IOpenOracleTaskManager {
 
     event FundsWithdrawn(uint taskNum, address creator, uint amount);
 
+    event AggregatorUpdated(address aggregator);
+
     // STRUCTS
     struct Task {
         uint8 taskType;
@@ -65,7 +67,7 @@ interface IOpenOracleTaskManager {
         uint8 taskType,
         uint8 responderThreshold,
         uint96 stakeThreshold
-    ) external payable;
+    ) external;
 
     /// @notice Returns the current 'taskNumber' for the middleware
     function taskNumber() external view returns (uint32);
