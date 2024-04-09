@@ -94,7 +94,7 @@ contract OpenOracleTaskManager is
     // NOTE: this function creates new task, assigns it a taskId
     function createNewTask(
         uint8 taskType,
-        uint8 responderNumber,
+        uint8 responderThreshold,
         uint96 stakeThreshold
     ) external payable paysTaskCreationFee(1) {
         // create a new task struct
@@ -102,7 +102,7 @@ contract OpenOracleTaskManager is
         newTask.taskType = taskType;
         newTask.taskCreatedBlock = uint32(block.number);
         newTask.stakeThreshold = stakeThreshold;
-        newTask.responderNumber = responderNumber;
+        newTask.responderThreshold = responderThreshold;
         newTask.creator = payable(msg.sender);
         newTask.creationFee = msg.value;
 

@@ -20,7 +20,7 @@ interface IOpenOracleTaskManager {
     struct Task {
         uint8 taskType;
         uint32 taskCreatedBlock;
-        uint8 responderNumber;
+        uint8 responderThreshold;
         uint96 stakeThreshold;
         address payable creator;
         uint creationFee;
@@ -63,7 +63,7 @@ interface IOpenOracleTaskManager {
     // NOTE: this function creates new task.
     function createNewTask(
         uint8 taskType,
-        uint8 responderNumber,
+        uint8 responderThreshold,
         uint96 stakeThreshold
     ) external payable;
 
