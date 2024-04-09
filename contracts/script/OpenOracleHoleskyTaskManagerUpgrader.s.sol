@@ -3,25 +3,9 @@ pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
-import "@eigenlayer/contracts/permissions/PauserRegistry.sol";
-import {IAVSDirectory} from "@eigenlayer/contracts/interfaces/IAVSDirectory.sol";
-import {IDelegationManager} from "@eigenlayer/contracts/interfaces/IDelegationManager.sol";
-import {IStrategyManager, IStrategy} from "@eigenlayer/contracts/interfaces/IStrategyManager.sol";
-import {ISlasher} from "@eigenlayer/contracts/interfaces/ISlasher.sol";
-import {StrategyBaseTVLLimits} from "@eigenlayer/contracts/strategies/StrategyBaseTVLLimits.sol";
-import "@eigenlayer/test/mocks/EmptyContract.sol";
-
 import "@eigenlayer-middleware/src/RegistryCoordinator.sol" as regcoord;
-import {IBLSApkRegistry, IIndexRegistry, IStakeRegistry} from "@eigenlayer-middleware/src/RegistryCoordinator.sol";
-import {BLSApkRegistry} from "@eigenlayer-middleware/src/BLSApkRegistry.sol";
-import {IndexRegistry} from "@eigenlayer-middleware/src/IndexRegistry.sol";
-import {StakeRegistry} from "@eigenlayer-middleware/src/StakeRegistry.sol";
-import "@eigenlayer-middleware/src/OperatorStateRetriever.sol";
 
-import {OpenOracleServiceManager, IServiceManager} from "../src/OpenOracleServiceManager.sol";
-import {OpenOracleTaskManager} from "../src/OpenOracleTaskManager.sol";
-import {IOpenOracleTaskManager} from "../src/IOpenOracleTaskManager.sol";
-import "../src/ERC20Mock.sol";
+import {OpenOracleTaskManager, IOpenOracleTaskManager} from "../src/OpenOracleTaskManager.sol";
 
 import {Utils} from "./utils/Utils.sol";
 
@@ -37,9 +21,6 @@ contract OpenOracleHoleskyTaskManagerUpgrader is Script, Utils {
 
     // DEPLOYMENT CONSTANTS
     uint32 public constant TASK_RESPONSE_WINDOW_BLOCK = 30;
-    // TODO: right now hardcoding these (this address is anvil's default address 9)
-    address public constant AGGREGATOR_ADDR =
-        0xa0Ee7A142d267C1f36714E4a8F75612F20a79720;
 
     IOpenOracleTaskManager public openOracleTaskManagerImplementation;
 
@@ -111,7 +92,6 @@ contract OpenOracleHoleskyTaskManagerUpgrader is Script, Utils {
             ),
             address(openOracleTaskManagerImplementation)
         );
-        openOracleTaskManager.updateAggregator(AGGREGATOR_ADDR);
 
         // WRITE JSON DATA
         string memory parent_object = "parent object";
