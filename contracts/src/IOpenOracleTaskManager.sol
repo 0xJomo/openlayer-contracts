@@ -18,6 +18,10 @@ interface IOpenOracleTaskManager {
 
     event AggregatorUpdated(address aggregator);
 
+    // Add events for adding and removing from feed allowlist
+    event AddressAddedToFeedlist(address indexed _address);
+    event AddressRemovedFromFeedlist(address indexed _address);
+
     // STRUCTS
     struct Task {
         uint8 taskType;
@@ -69,6 +73,12 @@ interface IOpenOracleTaskManager {
         uint96 stakeThreshold
     ) external;
 
+        // Function to add an address to the feed list
+    function addToFeedlist(address _address) external;
+
+    // Function to remove an address from the feed list
+    function removeFromFeed(address _address) external;
+    
     /// @notice Returns the current 'taskNumber' for the middleware
     function taskNumber() external view returns (uint32);
 

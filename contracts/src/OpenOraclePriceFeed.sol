@@ -12,7 +12,7 @@ contract OpenOraclePriceFeed is IOpenOraclePriceFeed {
     uint8 internal _responderThreshold;
     uint96 internal _stakeThreshold;
 
-    int256 _latestValue;
+    uint256 _latestValue;
 
     modifier onlyTaskManager() {
         require(
@@ -38,13 +38,13 @@ contract OpenOraclePriceFeed is IOpenOraclePriceFeed {
         _openOracleTaskManager.createNewTask(_taskType, _responderThreshold, _stakeThreshold);
     }
 
-    function saveLatestData(int256 value) external onlyTaskManager {
+    function saveLatestData(uint256 value) external onlyTaskManager {
         _latestValue = value;
     }
 
 
     function latestRoundData() view external
-    returns (int256) {
+    returns (uint256) {
         return _latestValue;
     }
 }

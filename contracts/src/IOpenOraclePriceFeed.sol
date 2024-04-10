@@ -6,8 +6,8 @@ interface IOpenOraclePriceFeed {
     function requestNewReport() external;
 
     /// @notice Saves the latest data from task manager in contract
-    function saveLatestData(int256 value) external;
+    function saveLatestData(uint256 value) external;
 
     /// @notice Returns the latest data
-    function latestRoundData() view external returns (int256);
+    function latestRoundData() view external returns (uint256);
 }
