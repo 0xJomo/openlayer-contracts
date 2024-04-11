@@ -1,0 +1,6 @@
+{
+  "addresses": {
+    "openOraclePriceFeed": "0x07cc08ccC6727515BBC6ba68Fa817Efc3409904c",
+    "openOracleTaskManager": "0xd019a78a19F8Ae1DCB5CD188620BCBC8fd3C8090"
+  }
+}
