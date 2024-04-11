@@ -20,6 +20,7 @@ import "@eigenlayer-middleware/src/OperatorStateRetriever.sol";
 
 import {OpenOracleServiceManager, IServiceManager} from "../src/OpenOracleServiceManager.sol";
 import {OpenOracleTaskManager} from "../src/OpenOracleTaskManager.sol";
+import {OpenOraclePriceFeed} from "../src/OpenOraclePriceFeed.sol";
 import {IOpenOracleTaskManager} from "../src/IOpenOracleTaskManager.sol";
 import "../src/ERC20Mock.sol";
 
@@ -66,6 +67,8 @@ contract OpenOracleDeployer is Script, Utils {
 
     OpenOracleTaskManager public openOracleTaskManager;
     IOpenOracleTaskManager public openOracleTaskManagerImplementation;
+
+    OpenOraclePriceFeed public openOraclePriceFeed;
 
     function run() external {
         // Eigenlayer contracts
@@ -199,6 +202,8 @@ contract OpenOracleDeployer is Script, Utils {
 
         operatorStateRetriever = new OperatorStateRetriever();
 
+        openOraclePriceFeed = new OpenOraclePriceFeed(openOracleTaskManager, 1, 10, 1);
+
         // Second, deploy the *implementation* contracts, using the *proxy contracts* as inputs
         {
             stakeRegistryImplementation = new StakeRegistry(
@@ -313,9 +318,9 @@ contract OpenOracleDeployer is Script, Utils {
             )
         );
 
-        // IOpenOracleTaskManager taskManagerInterface = IOpenOracleTaskManager(address(openOracleTaskManager));
-        // address feedAddress = address("0x1231231231231231"); // Specify the address you want to add
-        // taskManagerInterface.addToFeedlist(feedAddress);
+        IOpenOracleTaskManager taskManagerInterface = IOpenOracleTaskManager(address(openOracleTaskManager));
+        address feedAddress = address(openOraclePriceFeed); // Specify the address you want to add
+        taskManagerInterface.addToFeedlist(feedAddress);
 
         // WRITE JSON DATA
         string memory parent_object = "parent object";
@@ -385,6 +390,11 @@ contract OpenOracleDeployer is Script, Utils {
             deployed_addresses,
             "registryCoordinatorImplementation",
             address(registryCoordinatorImplementation)
+        );
+        vm.serializeAddress(
+            deployed_addresses,
+            "openOraclePriceFeed",
+            address(openOraclePriceFeed)
         );
         string memory deployed_addresses_output = vm.serializeAddress(
             deployed_addresses,
