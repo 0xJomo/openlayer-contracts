@@ -8,6 +8,7 @@ interface IOpenOracleTaskManager {
     event NewTaskCreated(uint32 indexed taskIndex, Task task);
 
     event TaskResponded(
+        Task task,
         WeightedTaskResponse taskResponse,
         TaskResponseMetadata taskResponseMetadata
     );
@@ -40,7 +41,7 @@ interface IOpenOracleTaskManager {
         // This is just the response that the operator has to compute by itself.
         uint256 result;
         // This is just the response that the operator has to compute by itself.
-        uint256 timeStamp;
+        uint256 timestamp;
     }
 
     struct OperatorResponse {
@@ -57,7 +58,7 @@ interface IOpenOracleTaskManager {
         // Standard deviation for weighted result
         uint256 sd;
         // Timestamp for result
-        uint256 timeStamp;
+        uint256 timestamp;
     }
 
     // Extra information related to taskResponse, which is filled inside the contract.
@@ -71,6 +72,12 @@ interface IOpenOracleTaskManager {
         uint8 taskType,
         uint8 responderThreshold,
         uint96 stakeThreshold
+    ) external;
+
+    function respondToTask(
+        Task calldata task,
+        OperatorResponse[] calldata responses,
+        WeightedTaskResponse calldata weightedTaskResponse
     ) external;
 
         // Function to add an address to the feed list

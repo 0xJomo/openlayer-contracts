@@ -189,10 +189,10 @@ contract OpenOracleTaskManager is
 
         require(isFeed[task.creator], "Feed needs to register with task manager");
         IOpenOraclePriceFeed oraclePriceFeed = IOpenOraclePriceFeed(task.creator);
-        oraclePriceFeed.saveLatestData(weightedTaskResponse.result);
+        oraclePriceFeed.saveLatestData(task, weightedTaskResponse, taskResponseMetadata);
 
         // emitting event
-        emit TaskResponded(weightedTaskResponse, taskResponseMetadata);
+        emit TaskResponded(task, weightedTaskResponse, taskResponseMetadata);
     }
 
     function withdrawTaskFunds(uint32 taskNum, Task memory task) external onlyTaskCreator(taskNum, task) {

@@ -12,7 +12,9 @@ contract OpenOraclePriceFeed is IOpenOraclePriceFeed {
     uint8 internal _responderThreshold;
     uint96 internal _stakeThreshold;
 
-    uint256 _latestValue;
+    IOpenOracleTaskManager.WeightedTaskResponse _latestResponse;
+    IOpenOracleTaskManager.TaskResponseMetadata _latestMetadata;
+    uint32 _latestCreatedBlock;
 
     modifier onlyTaskManager() {
         require(
@@ -38,13 +40,40 @@ contract OpenOraclePriceFeed is IOpenOraclePriceFeed {
         _openOracleTaskManager.createNewTask(_taskType, _responderThreshold, _stakeThreshold);
     }
 
-    function saveLatestData(uint256 value) external onlyTaskManager {
-        _latestValue = value;
+    function saveLatestData(
+        IOpenOracleTaskManager.Task calldata task,
+        IOpenOracleTaskManager.WeightedTaskResponse calldata response, 
+        IOpenOracleTaskManager.TaskResponseMetadata calldata metadata
+    ) external onlyTaskManager {
+        _latestResponse = response;
+        _latestMetadata = metadata;
+        _latestCreatedBlock = task.taskCreatedBlock;
+
+        emit NewPriceReported(
+            task.taskType, 
+            response.referenceTaskIndex, 
+            response.result, 
+            response.sd, 
+            response.timestamp, 
+            task.taskCreatedBlock, 
+            metadata.taskResponsedBlock
+        );
     }
 
-
     function latestRoundData() view external
-    returns (uint256) {
-        return _latestValue;
+    returns (
+        uint256 price,
+        uint256 sd,
+        uint256 timestamp,
+        uint32 startBlock,
+        uint32 endBlock
+    ) {
+        return (
+            _latestResponse.result, 
+            _latestResponse.sd, 
+            _latestResponse.timestamp, 
+            _latestCreatedBlock, 
+            _latestMetadata.taskResponsedBlock
+        );
     }
 }

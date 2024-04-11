@@ -4,6 +4,7 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
 import "@eigenlayer-middleware/src/RegistryCoordinator.sol" as regcoord;
+import "@eigenlayer/contracts/permissions/PauserRegistry.sol";
 
 import {OpenOracleTaskManager, IOpenOracleTaskManager} from "../src/OpenOracleTaskManager.sol";
 

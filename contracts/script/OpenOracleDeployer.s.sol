@@ -202,7 +202,7 @@ contract OpenOracleDeployer is Script, Utils {
 
         operatorStateRetriever = new OperatorStateRetriever();
 
-        openOraclePriceFeed = new OpenOraclePriceFeed(openOracleTaskManager, 1, 10, 1);
+        openOraclePriceFeed = new OpenOraclePriceFeed(openOracleTaskManager, 1, 1, 0);
 
         // Second, deploy the *implementation* contracts, using the *proxy contracts* as inputs
         {
