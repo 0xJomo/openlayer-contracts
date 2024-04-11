@@ -313,6 +313,10 @@ contract OpenOracleDeployer is Script, Utils {
             )
         );
 
+        // IOpenOracleTaskManager taskManagerInterface = IOpenOracleTaskManager(address(openOracleTaskManager));
+        // address feedAddress = address("0x1231231231231231"); // Specify the address you want to add
+        // taskManagerInterface.addToFeedlist(feedAddress);
+
         // WRITE JSON DATA
         string memory parent_object = "parent object";
 

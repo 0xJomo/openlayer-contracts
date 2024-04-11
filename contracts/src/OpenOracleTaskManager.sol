@@ -12,6 +12,7 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {OperatorStateRetriever} from "@eigenlayer-middleware/src/OperatorStateRetriever.sol";
 import "@eigenlayer-middleware/src/libraries/BN254.sol";
 import "./IOpenOracleTaskManager.sol";
+import "./IOpenOraclePriceFeed.sol";
 
 contract OpenOracleTaskManager is
     Initializable,
@@ -46,11 +47,19 @@ contract OpenOracleTaskManager is
     // mapping of task indices to hash of abi.encode(taskResponse, taskResponseMetadata)
     mapping(uint32 => bytes32) public allTaskResponses;
 
+    // Mapping to keep track of feed addresses
+    mapping(address => bool) public isFeed;
+
     address public aggregator;
 
     /* MODIFIERS */
     modifier onlyAggregator() {
         require(msg.sender == aggregator, "Aggregator must be the caller");
+        _;
+    }
+
+    modifier onlyFeed() {
+        require(isFeed[msg.sender], "Caller is not feed");
         _;
     }
 
@@ -103,7 +112,7 @@ contract OpenOracleTaskManager is
         uint8 taskType,
         uint8 responderThreshold,
         uint96 stakeThreshold
-    ) external {
+    ) external onlyFeed {
         // create a new task struct
         Task memory newTask;
         newTask.taskType = taskType;
@@ -178,6 +187,10 @@ contract OpenOracleTaskManager is
             abi.encode(weightedTaskResponse, taskResponseMetadata)
         );
 
+        require(isFeed[task.creator], "Feed needs to register with task manager");
+        IOpenOraclePriceFeed oraclePriceFeed = IOpenOraclePriceFeed(task.creator);
+        oraclePriceFeed.saveLatestData(weightedTaskResponse.result);
+
         // emitting event
         emit TaskResponded(weightedTaskResponse, taskResponseMetadata);
     }
@@ -202,6 +215,18 @@ contract OpenOracleTaskManager is
     // Function to update the task creation fee, restricted to owner
     function updateTaskCreationFee(uint _newFee) external onlyOwner {
         taskCreationFee = _newFee;
+    }
+
+    // Function to add an address to the feed list
+    function addToFeedlist(address _address) external onlyOwner {
+        isFeed[_address] = true;
+        emit AddressAddedToFeedlist(_address);
+    }
+
+    // Function to remove an address from the feed list
+    function removeFromFeed(address _address) external onlyOwner {
+        isFeed[_address] = false;
+        emit AddressRemovedFromFeedlist(_address);
     }
 
     // Function to allow the contract owner to withdraw the balance
