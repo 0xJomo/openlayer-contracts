@@ -17,8 +17,8 @@ contract OpenOracleHoleskyPriceFeedDeployer is Script, Utils {
     string public deployConfigPath = string(bytes("./script/config/holesky/testnet.config.json"));
 
     uint8 taskType = 1;
-    uint8 responderThreshold = 2;
-    uint96 stakeThreshold = 1000;
+    uint8 responderThreshold = 1;
+    uint96 stakeThreshold = 0;
 
     OpenOraclePriceFeed public openOraclePriceFeed;
 
