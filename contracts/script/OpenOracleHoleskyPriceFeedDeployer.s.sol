@@ -16,9 +16,9 @@ import "forge-std/console.sol";
 contract OpenOracleHoleskyPriceFeedDeployer is Script, Utils {
     string public deployConfigPath = string(bytes("./script/config/holesky/testnet.config.json"));
 
-    uint8 taskType = 1;
-    uint8 responderThreshold = 1;
-    uint96 stakeThreshold = 0;
+    uint8 taskType = 4;
+    uint8 responderThreshold = 3;
+    uint96 stakeThreshold = 10000000000000000;
 
     OpenOraclePriceFeed public openOraclePriceFeed;
 
