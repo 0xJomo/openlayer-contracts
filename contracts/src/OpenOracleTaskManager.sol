@@ -5,7 +5,8 @@ import "@openzeppelin-upgrades/contracts/proxy/utils/Initializable.sol";
 import "@openzeppelin-upgrades/contracts/access/OwnableUpgradeable.sol";
 import "@eigenlayer/contracts/permissions/Pausable.sol";
 import "@eigenlayer-middleware/src/interfaces/IServiceManager.sol";
-import {BLSApkRegistry} from "@eigenlayer-middleware/src/BLSApkRegistry.sol";
+import {IBLSApkRegistry} from "@eigenlayer-middleware/src/interfaces/IBLSApkRegistry.sol";
+import {IStakeRegistry} from "@eigenlayer-middleware/src/interfaces/IStakeRegistry.sol";
 import {RegistryCoordinator} from "@eigenlayer-middleware/src/RegistryCoordinator.sol";
 import {BLSSignatureChecker, IRegistryCoordinator} from "@eigenlayer-middleware/src/BLSSignatureChecker.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
@@ -18,12 +19,14 @@ contract OpenOracleTaskManager is
     Initializable,
     OwnableUpgradeable,
     Pausable,
-    BLSSignatureChecker,
     OperatorStateRetriever,
     IOpenOracleTaskManager
 {
     using BN254 for BN254.G1Point;
     using ECDSA for bytes32;
+
+    IStakeRegistry public immutable stakeRegistry;
+    IBLSApkRegistry public immutable blsApkRegistry;
 
     /* CONSTANT */
     // The number of blocks from the task initialization within which the aggregator has to respond to
@@ -83,9 +86,12 @@ contract OpenOracleTaskManager is
     }
 
     constructor(
-        IRegistryCoordinator _registryCoordinator,
+        IStakeRegistry _stakeRegistry,
+        IBLSApkRegistry _BLSApkRegistry,
         uint32 _taskResponseWindowBlock
-    ) BLSSignatureChecker(_registryCoordinator) {
+    ) {
+        stakeRegistry = _stakeRegistry;
+        blsApkRegistry = _BLSApkRegistry;
         TASK_RESPONSE_WINDOW_BLOCK = _taskResponseWindowBlock;
     }
 
@@ -161,6 +167,7 @@ contract OpenOracleTaskManager is
             allTaskResponses[weightedTaskResponse.referenceTaskIndex] == bytes32(0),
             "Aggregator has already responded to the task"
         );
+        
 
         // check that the task is valid, hasn't been responsed yet, and is being responsed in time
         for (uint i = 0; i < responses.length; i++) {
@@ -171,6 +178,11 @@ contract OpenOracleTaskManager is
             require(
                 ethSignedMessageHash.recover(responses[i].signature) == responses[i].operator,
                 "Invalid signature or operator address"
+            );
+
+            require(
+                stakeRegistry.weightOfOperatorForQuorum(1, msg.sender) >= task.stakeThreshold,
+                "Operator stake not meet minimum threshold"
             );
 
             require(

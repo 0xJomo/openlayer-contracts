@@ -316,7 +316,8 @@ contract OpenOracleDeployer is Script, Utils {
         openOracleServiceManager.addOperatorToRegistryWhitelist(whitelist);
 
         openOracleTaskManagerImplementation = new OpenOracleTaskManager(
-            registryCoordinator,
+            stakeRegistry,
+            blsApkRegistry,
             TASK_RESPONSE_WINDOW_BLOCK
         );
 

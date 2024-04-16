@@ -19,6 +19,15 @@ contract OpenOracleServiceManager is ServiceManagerBase {
     IOpenOracleTaskManager public immutable openOracleTaskManager;
 
     mapping(address => bool) public operatorIsWhitelistedForRegister;
+    struct TaskManagerEntry {
+        string url;
+        address taskManagerAddress;
+        bool isActive;
+    }
+
+    // Mapping from unique identifiers to task managers
+    mapping(uint256 => TaskManagerEntry) public taskManagers;
+    uint256 public taskManagerCount;
 
     /// @notice when applied to a function, ensures that the function is only callable by the `registryCoordinator`.
     modifier onlyOpenOracleTaskManager() {
@@ -49,6 +58,33 @@ contract OpenOracleServiceManager is ServiceManagerBase {
     function initialize(address initialOwner) public virtual initializer {
         __ServiceManagerBase_init(initialOwner);
     }
+
+        /// @notice Adds a new Task Manager entry to the list.
+    /// @param url The URL associated with the Task Manager.
+    /// @param taskManagerAddress The address of the Task Manager contract.
+    function addTaskManager(string memory url, address taskManagerAddress) external onlyOwner {
+        uint256 id = taskManagerCount++;
+        taskManagers[id] = TaskManagerEntry(url, taskManagerAddress, true);
+        emit TaskManagerAdded(id, url, taskManagerAddress);
+    }
+
+    /// @notice Removes a Task Manager entry from the list.
+    /// @param id The identifier of the Task Manager to remove.
+    function removeTaskManager(uint256 id) external onlyOwner {
+        require(taskManagers[id].isActive, "Task Manager does not exist or already removed");
+        taskManagers[id].isActive = false;
+        emit TaskManagerRemoved(id);
+    }
+
+    /// @notice Emitted when a new Task Manager is added.
+    /// @param id The identifier of the new Task Manager.
+    /// @param url The URL associated with the new Task Manager Net.
+    /// @param taskManagerAddress The address of the new Task Manager.
+    event TaskManagerAdded(uint256 id, string url, address taskManagerAddress);
+
+    /// @notice Emitted when a Task Manager is removed.
+    /// @param id The identifier of the removed Task Manager.
+    event TaskManagerRemoved(uint256 id);
 
     /// @notice Called in the event of challenge resolution, in order to forward a call to the Slasher, which 'freezes' the `operator`.
     /// @dev The Slasher contract is under active development and its interface expected to change.

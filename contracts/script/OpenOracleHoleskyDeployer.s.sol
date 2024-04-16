@@ -295,7 +295,8 @@ contract OpenOracleHoleskyDeployer is Script, Utils {
         );
 
         openOracleTaskManagerImplementation = new OpenOracleTaskManager(
-            registryCoordinator,
+            stakeRegistry,
+            blsApkRegistry,
             TASK_RESPONSE_WINDOW_BLOCK
         );
 

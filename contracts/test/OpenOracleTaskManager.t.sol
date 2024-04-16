@@ -5,6 +5,7 @@ import "../src/OpenOracleServiceManager.sol" as incsqsm;
 import {OpenOracleTaskManager} from "../src/OpenOracleTaskManager.sol";
 import {BLSMockAVSDeployer} from "@eigenlayer-middleware/test/utils/BLSMockAVSDeployer.sol";
 import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+import {IBLSApkRegistry} from "@eigenlayer-middleware/src/interfaces/IBLSApkRegistry.sol";
 
 contract OpenOracleTaskManagerTest is BLSMockAVSDeployer {
     incsqsm.OpenOracleServiceManager sm;
@@ -20,7 +21,8 @@ contract OpenOracleTaskManagerTest is BLSMockAVSDeployer {
         _setUpBLSMockAVSDeployer();
 
         tmImplementation = new OpenOracleTaskManager(
-            incsqsm.IRegistryCoordinator(address(registryCoordinator)),
+            incsqsm.IStakeRegistry(address(stakeRegistry)),
+            IBLSApkRegistry(address(blsApkRegistry)),
             TASK_RESPONSE_WINDOW_BLOCK
         );
 
