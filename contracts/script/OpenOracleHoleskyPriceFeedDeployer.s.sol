@@ -16,11 +16,34 @@ import "forge-std/console.sol";
 contract OpenOracleHoleskyPriceFeedDeployer is Script, Utils {
     string public deployConfigPath = string(bytes("./script/config/holesky/testnet.config.json"));
 
-    uint8 taskType = 4;
+    uint8 taskTypeLower = 5;
+    uint8 taskTypeUpper = 13;
     uint8 responderThreshold = 3;
     uint96 stakeThreshold = 10000000000000000;
 
-    OpenOraclePriceFeed public openOraclePriceFeed;
+    function toString(uint8 value) internal pure returns (string memory) {
+        if (value == 0) {
+            return "0";
+        }
+ 
+        uint8 temp = value;
+        uint8 digits;
+ 
+        while (temp != 0) {
+            digits++;
+            temp /= 10;
+        }
+ 
+        bytes memory buffer = new bytes(digits);
+ 
+        while (value != 0) {
+            digits--;
+            buffer[digits] = bytes1(uint8(48 + (value % 10)));
+            value /= 10;
+        }
+ 
+        return string(buffer);
+    }
 
     function run() external {
         // Eigenlayer contracts
@@ -37,23 +60,25 @@ contract OpenOracleHoleskyPriceFeedDeployer is Script, Utils {
 
         vm.startBroadcast();
 
-        openOraclePriceFeed = new OpenOraclePriceFeed(openOracleTaskManager, taskType, responderThreshold, stakeThreshold);
-        address feedAddress = address(openOraclePriceFeed); // Specify the address you want to add
-        openOracleTaskManager.addToFeedlist(feedAddress);
-
         // WRITE JSON DATA
         string memory parent_object = "parent object";
-
         string memory deployed_addresses = "addresses";
-        vm.serializeAddress(
+
+        for (uint8 i = taskTypeLower; i <= taskTypeUpper; i++) {
+            OpenOraclePriceFeed openOraclePriceFeed = new OpenOraclePriceFeed(openOracleTaskManager, i, responderThreshold, stakeThreshold);
+            address feedAddress = address(openOraclePriceFeed); // Specify the address you want to add
+            openOracleTaskManager.addToFeedlist(feedAddress);
+            
+            vm.serializeAddress(
+                deployed_addresses,
+                toString(i),
+                address(openOraclePriceFeed)
+            );
+        }
+        string memory deployed_addresses_output = vm.serializeAddress(
             deployed_addresses,
             "openOracleTaskManager",
             address(openOracleTaskManager)
-        );
-        string memory deployed_addresses_output = vm.serializeAddress(
-            deployed_addresses,
-            "openOraclePriceFeed",
-            address(openOraclePriceFeed)
         );
 
         // serialize all the data
@@ -63,7 +88,7 @@ contract OpenOracleHoleskyPriceFeedDeployer is Script, Utils {
             deployed_addresses_output
         );
 
-        writeOutput(finalJson, "open_oracle_avs_pricefeed_output");
+        writeOutput(finalJson, "open_oracle_avs_pricefeeds_output");
 
         vm.stopBroadcast();
     }
