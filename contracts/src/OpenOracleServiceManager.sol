@@ -20,7 +20,7 @@ contract OpenOracleServiceManager is ServiceManagerBase {
 
     mapping(address => bool) public operatorIsWhitelistedForRegister;
     struct TaskManagerEntry {
-        string url;
+        string chainName;
         address taskManagerAddress;
         bool isActive;
     }

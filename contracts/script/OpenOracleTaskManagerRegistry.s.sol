@@ -25,16 +25,15 @@ import "forge-std/console.sol";
 contract OpenOracleTaskManagerRegistry is Script, Utils {
     string public deployConfigPath = string(bytes("./script/config/devnet/testnet.config.json"));
 
-    // DEPLOYMENT CONSTANTS
-    address public constant SERVICE_MANAGER_ADDR =
-        0x67d269191c92Caf3cD7723F116c85e6E9bf55933;
-
     OpenOracleServiceManager public openOracleTaskManager;
 
     function run() external {
         // Eigenlayer contracts
         string memory openOracleAVSDeployedContracts = readOutput(
             "open_oracle_avs_deployment_output"
+        );
+        string memory openOracleTMDeployedContracts = readOutput(
+            "open_oracle_avs_task_manager_deployment_output"
         );
         OpenOracleServiceManager openOracleServiceManager = OpenOracleServiceManager(
             stdJson.readAddress(
@@ -43,6 +42,9 @@ contract OpenOracleTaskManagerRegistry is Script, Utils {
             )
         );
 
-        // openOracleServiceManager.addTaskManager("http://127.0.0.1:8545", address("0x67d269191c92Caf3cD7723F116c85e6E9bf5593"));
+        openOracleServiceManager.addTaskManager("anvil", stdJson.readAddress(
+                openOracleTMDeployedContracts,
+                ".addresses.openOracleTaskManager"
+            ));
     }
 }
