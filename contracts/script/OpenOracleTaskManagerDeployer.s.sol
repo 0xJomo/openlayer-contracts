@@ -12,6 +12,8 @@ import "@eigenlayer-middleware/src/OperatorStateRetriever.sol";
 
 import {OpenOracleTaskManager} from "../src/OpenOracleTaskManager.sol";
 import {IOpenOracleTaskManager} from "../src/IOpenOracleTaskManager.sol";
+import {OpenOraclePriceFeed} from "../src/OpenOraclePriceFeed.sol";
+
 import "../src/ERC20Mock.sol";
 
 import {Utils} from "./utils/Utils.sol";
@@ -40,6 +42,7 @@ contract OpenOracleTaskManagerDeployer is Script, Utils {
     OperatorStateRetriever public operatorStateRetriever;
 
     OpenOracleTaskManager public openOracleTaskManager;
+    OpenOraclePriceFeed public openOraclePriceFeed;
     IOpenOracleTaskManager public openOracleTaskManagerImplementation;
 
     function run() external {
@@ -142,6 +145,10 @@ contract OpenOracleTaskManagerDeployer is Script, Utils {
         );
 
         IOpenOracleTaskManager taskManagerInterface = IOpenOracleTaskManager(address(openOracleTaskManager));
+
+        openOraclePriceFeed = new OpenOraclePriceFeed(openOracleTaskManager, 4, 1, 0);
+        address feedAddress = address(openOraclePriceFeed);
+        taskManagerInterface.addToFeedlist(feedAddress);
 
         // WRITE JSON DATA
         string memory parent_object = "parent object";

@@ -352,6 +352,8 @@ contract OpenOracleDeployer is Script, Utils {
         address feedAddress = address(openOraclePriceFeed); // Specify the address you want to add
         taskManagerInterface.addToFeedlist(feedAddress);
 
+        openOracleServiceManager.addTaskManager("anvil", address(openOracleTaskManager));
+
         // WRITE JSON DATA
         string memory parent_object = "parent object";
 

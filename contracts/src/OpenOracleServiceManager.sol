@@ -59,13 +59,13 @@ contract OpenOracleServiceManager is ServiceManagerBase {
         __ServiceManagerBase_init(initialOwner);
     }
 
-        /// @notice Adds a new Task Manager entry to the list.
-    /// @param url The URL associated with the Task Manager.
+    /// @notice Adds a new Task Manager entry to the list.
+    /// @param chainName The chain associated with the Task Manager.
     /// @param taskManagerAddress The address of the Task Manager contract.
-    function addTaskManager(string memory url, address taskManagerAddress) external onlyOwner {
+    function addTaskManager(string memory chainName, address taskManagerAddress) external onlyOwner {
         uint256 id = taskManagerCount++;
-        taskManagers[id] = TaskManagerEntry(url, taskManagerAddress, true);
-        emit TaskManagerAdded(id, url, taskManagerAddress);
+        taskManagers[id] = TaskManagerEntry(chainName, taskManagerAddress, true);
+        emit TaskManagerAdded(id, chainName, taskManagerAddress);
     }
 
     /// @notice Removes a Task Manager entry from the list.
@@ -78,9 +78,9 @@ contract OpenOracleServiceManager is ServiceManagerBase {
 
     /// @notice Emitted when a new Task Manager is added.
     /// @param id The identifier of the new Task Manager.
-    /// @param url The URL associated with the new Task Manager Net.
+    /// @param chainName The Chain associated with the new Task Manager Net.
     /// @param taskManagerAddress The address of the new Task Manager.
-    event TaskManagerAdded(uint256 id, string url, address taskManagerAddress);
+    event TaskManagerAdded(uint256 id, string chainName, address taskManagerAddress);
 
     /// @notice Emitted when a Task Manager is removed.
     /// @param id The identifier of the removed Task Manager.
