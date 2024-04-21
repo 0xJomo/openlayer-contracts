@@ -13,6 +13,7 @@ import "@eigenlayer-middleware/src/OperatorStateRetriever.sol";
 import {OpenOracleTaskManager} from "../src/OpenOracleTaskManager.sol";
 import {IOpenOracleTaskManager} from "../src/IOpenOracleTaskManager.sol";
 import {OpenOraclePriceFeed} from "../src/OpenOraclePriceFeed.sol";
+import {OpenOracleServiceManager} from "../src/OpenOracleServiceManager.sol";
 
 import "../src/ERC20Mock.sol";
 
@@ -45,6 +46,8 @@ contract OpenOracleTaskManagerDeployer is Script, Utils {
     OpenOraclePriceFeed public openOraclePriceFeed;
     IOpenOracleTaskManager public openOracleTaskManagerImplementation;
 
+    OpenOracleServiceManager public openOracleServiceManager;
+
     function run() external {
         // Eigenlayer contracts
         string memory openOracleAVSDeployedContracts = readOutput(
@@ -68,6 +71,13 @@ contract OpenOracleTaskManagerDeployer is Script, Utils {
                 ".addresses.proxyAdmin"
             )
         );
+        openOracleServiceManager = OpenOracleServiceManager(
+            stdJson.readAddress(
+                openOracleAVSDeployedContracts,
+                ".addresses.openOracleServiceManager"
+            )
+        );
+
 
         address openOracleCommunityMultisig = msg.sender;
         address openOraclePauser = msg.sender;
@@ -146,6 +156,9 @@ contract OpenOracleTaskManagerDeployer is Script, Utils {
         openOraclePriceFeed = new OpenOraclePriceFeed(openOracleTaskManager, 4, 1, 0);
         address feedAddress = address(openOraclePriceFeed);
         taskManagerInterface.addToFeedlist(feedAddress);
+
+        // Add deployed taskManager to service manager
+        openOracleServiceManager.addTaskManager("anvil", address(taskManagerInterface));
 
         // WRITE JSON DATA
         string memory parent_object = "parent object";
