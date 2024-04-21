@@ -89,9 +89,6 @@ contract OpenOracleTaskManagerDeployer is Script, Utils {
         address openOracleCommunityMultisig,
         address openOraclePauser
     ) internal {
-        // READ JSON CONFIG DATA
-        string memory config_data = vm.readFile(deployConfigPath);
-
         // deploy pauser registry
         {
             address[] memory pausers = new address[](2);
