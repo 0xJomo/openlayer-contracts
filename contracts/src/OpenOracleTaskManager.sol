@@ -181,7 +181,7 @@ contract OpenOracleTaskManager is
             );
 
             require(
-                stakeRegistry.weightOfOperatorForQuorum(1, msg.sender) >= task.stakeThreshold,
+                stakeRegistry.weightOfOperatorForQuorum(0, msg.sender) >= task.stakeThreshold,
                 "Operator stake not meet minimum threshold"
             );
 
