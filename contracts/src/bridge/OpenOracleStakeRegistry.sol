@@ -1,0 +1,363 @@
+// SPDX-License-Identifier: BUSL-1.1
+pragma solidity =0.8.12;
+
+import {IDelegationManager} from "eigenlayer-contracts/src/contracts/interfaces/IDelegationManager.sol";
+
+import {IStrategy} from "@eigenlayer-middleware/src/StakeRegistryStorage.sol";
+
+import {OpenOracleStakeRegistryStorage} from "./OpenOracleStakeRegistryStorage.sol";
+
+
+import {IRegistryCoordinator} from "@eigenlayer-middleware/src/interfaces/IRegistryCoordinator.sol";
+import {IStakeRegistry} from "@eigenlayer-middleware/src/interfaces/IStakeRegistry.sol";
+
+import {BitmapUtils} from "@eigenlayer-middleware/src/libraries/BitmapUtils.sol";
+
+import "@openzeppelin-upgrades/contracts/access/OwnableUpgradeable.sol";
+
+
+/**
+ * @title A `Registry` that keeps track of stakes of operators for up to 256 quorums.
+ * Specifically, it keeps track of
+ *      1) The stake of each operator in all the quorums they are a part of for block ranges
+ *      2) The total stake of all operators in each quorum for block ranges
+ *      3) The minimum stake required to register for each quorum
+ * It allows an additional functionality (in addition to registering and deregistering) to update the stake of an operator.
+ * @author Layr Labs, Inc.
+ */
+contract OpenOracleStakeRegistry is OpenOracleStakeRegistryStorage, Initializable, OwnableUpgradeable {
+
+    using BitmapUtils for *;
+    
+    constructor(
+        IRegistryCoordinator _registryCoordinator,
+        IDelegationManager _delegationManager
+    ) OpenOracleStakeRegistryStorage(_registryCoordinator, _delegationManager) {
+        _disableInitializers();
+    }
+
+    function initialize(
+        address initialOwner
+    ) public initializer {
+        _transferOwnership(initialOwner);
+    }
+
+    /*******************************************************************************
+                      EXTERNAL FUNCTIONS - REGISTRY COORDINATOR
+    *******************************************************************************/
+
+    /**
+     * @notice Registers the `operator` with `operatorId` for the specified `quorumNumbers`.
+     * @param operator The address of the operator to register.
+     * @param operatorId The id of the operator to register.
+     * @param quorumNumbers The quorum numbers the operator is registering for, where each byte is an 8 bit integer quorumNumber.
+     * @return The operator's current stake for each quorum, and the total stake for each quorum
+     * @dev access restricted to the RegistryCoordinator
+     * @dev Preconditions (these are assumed, not validated in this contract):
+     *         1) `quorumNumbers` has no duplicates
+     *         2) `quorumNumbers.length` != 0
+     *         3) `quorumNumbers` is ordered in ascending order
+     *         4) the operator is not already registered
+     */
+    function registerOperator(
+        address operator,
+        bytes32 operatorId,
+        bytes calldata quorumNumbers
+    ) public virtual returns (uint96[] memory, uint96[] memory) {}
+
+    /**
+     * @notice Deregisters the operator with `operatorId` for the specified `quorumNumbers`.
+     * @param operatorId The id of the operator to deregister.
+     * @param quorumNumbers The quorum numbers the operator is deregistering from, where each byte is an 8 bit integer quorumNumber.
+     * @dev access restricted to the RegistryCoordinator
+     * @dev Preconditions (these are assumed, not validated in this contract):
+     *         1) `quorumNumbers` has no duplicates
+     *         2) `quorumNumbers.length` != 0
+     *         3) `quorumNumbers` is ordered in ascending order
+     *         4) the operator is not already deregistered
+     *         5) `quorumNumbers` is a subset of the quorumNumbers that the operator is registered for
+     */
+    function deregisterOperator(
+        bytes32 operatorId,
+        bytes calldata quorumNumbers
+    ) public virtual {}
+
+    /**
+     * @notice Called by the registry coordinator to update an operator's stake for one
+     * or more quorums.
+     *
+     * If the operator no longer has the minimum stake required for a quorum, they are
+     * added to the `quorumsToRemove`, which is returned to the registry coordinator
+     * @return A bitmap of quorums where the operator no longer meets the minimum stake
+     * and should be deregistered.
+     */
+    function updateOperatorStake(
+        address operator, 
+        bytes32 operatorId, 
+        bytes calldata quorumNumbers
+    ) external returns (uint192) {}
+
+    /// @notice Initialize a new quorum and push its first history update
+    function initializeQuorum(
+        uint8 quorumNumber,
+        uint96 minimumStake,
+        StrategyParams[] memory _strategyParams
+    ) public virtual {}
+
+    function setMinimumStakeForQuorum(
+        uint8 quorumNumber, 
+        uint96 minimumStake
+    ) public virtual {}
+
+    /** 
+     * @notice Adds strategies and weights to the quorum
+     * @dev Checks to make sure that the *same* strategy cannot be added multiple times (checks against both against existing and new strategies).
+     * @dev This function has no check to make sure that the strategies for a single quorum have the same underlying asset. This is a concious choice,
+     * since a middleware may want, e.g., a stablecoin quorum that accepts USDC, USDT, DAI, etc. as underlying assets and trades them as "equivalent".
+     */
+    function addStrategies(
+        uint8 quorumNumber, 
+        StrategyParams[] memory _strategyParams
+    ) public virtual {}
+
+    /**
+     * @notice Remove strategies and their associated weights from the quorum's considered strategies
+     * @dev higher indices should be *first* in the list of @param indicesToRemove, since otherwise
+     * the removal of lower index entries will cause a shift in the indices of the other strategies to remove
+     */
+    function removeStrategies(
+        uint8 quorumNumber,
+        uint256[] memory indicesToRemove
+    ) public virtual {}
+
+    /**
+     * @notice Modifies the weights of existing strategies for a specific quorum
+     * @param quorumNumber is the quorum number to which the strategies belong
+     * @param strategyIndices are the indices of the strategies to change
+     * @param newMultipliers are the new multipliers for the strategies
+     */
+    function modifyStrategyParams(
+        uint8 quorumNumber,
+        uint256[] calldata strategyIndices,
+        uint96[] calldata newMultipliers
+    ) public virtual {}
+
+    /*******************************************************************************
+                            INTERNAL FUNCTIONS
+    *******************************************************************************/
+
+    /// @notice Checks that the `stakeUpdate` was valid at the given `blockNumber`
+    function _validateStakeUpdateAtBlockNumber(
+        StakeUpdate memory stakeUpdate,
+        uint32 blockNumber
+    ) internal pure {
+         /**
+         * Check that the update is valid for the given blockNumber:
+         * - blockNumber should be >= the update block number
+         * - the next update block number should be either 0 or strictly greater than blockNumber
+         */
+        require(
+            blockNumber >= stakeUpdate.updateBlockNumber,
+            "StakeRegistry._validateStakeUpdateAtBlockNumber: stakeUpdate is from after blockNumber"
+        );
+        require(
+            stakeUpdate.nextUpdateBlockNumber == 0 || blockNumber < stakeUpdate.nextUpdateBlockNumber,
+            "StakeRegistry._validateStakeUpdateAtBlockNumber: there is a newer stakeUpdate available before blockNumber"
+        );
+    }
+
+    /**
+     * @notice This function computes the total weight of the @param operator in the quorum @param quorumNumber.
+     * @dev this method DOES NOT check that the quorum exists
+     * @return `uint96` The weighted sum of the operator's shares across each strategy considered by the quorum
+     * @return `bool` True if the operator meets the quorum's minimum stake
+     */
+    function _weightOfOperatorForQuorum(uint8 quorumNumber, address operator) internal virtual view returns (uint96, bool) {
+        uint96 weight;
+        uint256 stratsLength = strategyParamsLength(quorumNumber);
+        StrategyParams memory strategyAndMultiplier;
+
+        uint256[] memory strategyShares = delegation.getOperatorShares(operator, strategiesPerQuorum[quorumNumber]);
+        for (uint256 i = 0; i < stratsLength; i++) {
+            // accessing i^th StrategyParams struct for the quorumNumber
+            strategyAndMultiplier = strategyParams[quorumNumber][i];
+
+            // add the weight from the shares for this strategy to the total weight
+            if (strategyShares[i] > 0) {
+                weight += uint96(strategyShares[i] * strategyAndMultiplier.multiplier / WEIGHTING_DIVISOR);
+            }
+        }
+
+        // Return the weight, and `true` if the operator meets the quorum's minimum stake
+        bool hasMinimumStake = weight >= minimumStakeForQuorum[quorumNumber];
+        return (weight, hasMinimumStake);
+    }
+
+    /// @notice Returns `true` if the quorum has been initialized
+    function _quorumExists(uint8 quorumNumber) internal view returns (bool) {}
+
+    /*******************************************************************************
+                            VIEW FUNCTIONS
+    *******************************************************************************/
+
+    /**
+     * @notice This function computes the total weight of the @param operator in the quorum @param quorumNumber.
+     * @dev reverts if the quorum does not exist
+     */
+    function weightOfOperatorForQuorum(
+        uint8 quorumNumber, 
+        address operator
+    ) public virtual view returns (uint96) {
+        (uint96 stake, ) = _weightOfOperatorForQuorum(quorumNumber, operator);
+        return stake;
+    }
+
+    /// @notice Returns the length of the dynamic array stored in `strategyParams[quorumNumber]`.
+    function strategyParamsLength(uint8 quorumNumber) public view returns (uint256) {}
+
+    /// @notice Returns the strategy and weight multiplier for the `index`'th strategy in the quorum `quorumNumber`
+    function strategyParamsByIndex(
+        uint8 quorumNumber, 
+        uint256 index
+    ) public view returns (StrategyParams memory)
+    {}
+
+    /*******************************************************************************
+                      VIEW FUNCTIONS - Operator Stake History
+    *******************************************************************************/
+
+    /**
+     * @notice Returns the length of an operator's stake history for the given quorum
+     */
+    function getStakeHistoryLength(
+        bytes32 operatorId,
+        uint8 quorumNumber
+    ) external view returns (uint256) {}
+
+    /**
+     * @notice Returns the entire `operatorStakeHistory[operatorId][quorumNumber]` array.
+     * @param operatorId The id of the operator of interest.
+     * @param quorumNumber The quorum number to get the stake for.
+     */
+    function getStakeHistory(
+        bytes32 operatorId, 
+        uint8 quorumNumber
+    ) external view returns (StakeUpdate[] memory) {}
+
+    /**
+     * @notice Returns the most recent stake weight for the `operatorId` for quorum `quorumNumber`
+     * @dev Function returns weight of **0** in the event that the operator has no stake history
+     */
+    function getCurrentStake(bytes32 operatorId, uint8 quorumNumber) external view returns (uint96) {}
+
+    /**
+     * @notice Returns the most recent stake weight for the `operatorId` for a certain quorum
+     * @dev Function returns an StakeUpdate struct with **every entry equal to 0** in the event that the operator has no stake history
+     */
+    function getLatestStakeUpdate(
+        bytes32 operatorId,
+        uint8 quorumNumber
+    ) public view returns (StakeUpdate memory) {}
+
+    /**
+     * @notice Returns the `index`-th entry in the `operatorStakeHistory[operatorId][quorumNumber]` array.
+     * @param quorumNumber The quorum number to get the stake for.
+     * @param operatorId The id of the operator of interest.
+     * @param index Array index for lookup, within the dynamic array `operatorStakeHistory[operatorId][quorumNumber]`.
+     * @dev Function will revert if `index` is out-of-bounds.
+     */
+    function getStakeUpdateAtIndex(
+        uint8 quorumNumber,
+        bytes32 operatorId,
+        uint256 index
+    ) external view returns (StakeUpdate memory) {}
+
+    /// @notice Returns the stake of the operator for the provided `quorumNumber` at the given `blockNumber`
+    function getStakeAtBlockNumber(
+        bytes32 operatorId,
+        uint8 quorumNumber,
+        uint32 blockNumber
+    ) external view returns (uint96) {}
+
+    /// @notice Returns the indices of the operator stakes for the provided `quorumNumber` at the given `blockNumber`
+    function getStakeUpdateIndexAtBlockNumber(
+        bytes32 operatorId,
+        uint8 quorumNumber,
+        uint32 blockNumber
+    ) external view returns (uint32) {}
+
+    /**
+     * @notice Returns the stake weight corresponding to `operatorId` for quorum `quorumNumber`, at the
+     * `index`-th entry in the `operatorStakeHistory[operatorId][quorumNumber]` array if it was the operator's
+     * stake at `blockNumber`. Reverts otherwise.
+     * @param quorumNumber The quorum number to get the stake for.
+     * @param operatorId The id of the operator of interest.
+     * @param index Array index for lookup, within the dynamic array `operatorStakeHistory[operatorId][quorumNumber]`.
+     * @param blockNumber Block number to make sure the stake is from.
+     * @dev Function will revert if `index` is out-of-bounds.
+     */
+    function getStakeAtBlockNumberAndIndex(
+        uint8 quorumNumber,
+        uint32 blockNumber,
+        bytes32 operatorId,
+        uint256 index
+    ) external view returns (uint96) {
+        StakeUpdate memory operatorStakeUpdate = operatorStakeHistory[operatorId][quorumNumber][index];
+        _validateStakeUpdateAtBlockNumber(operatorStakeUpdate, blockNumber);
+        return operatorStakeUpdate.stake;
+    }
+
+    /*******************************************************************************
+                        VIEW FUNCTIONS - Total Stake History
+    *******************************************************************************/
+
+    /**
+     * @notice Returns the length of the total stake history for the given quorum
+     */
+    function getTotalStakeHistoryLength(uint8 quorumNumber) external view returns (uint256) {}
+
+    /**
+     * @notice Returns the stake weight from the latest entry in `_totalStakeHistory` for quorum `quorumNumber`.
+     * @dev Will revert if `_totalStakeHistory[quorumNumber]` is empty.
+     */
+    function getCurrentTotalStake(uint8 quorumNumber) external view returns (uint96) {}
+
+    /**
+     * @notice Returns the `index`-th entry in the dynamic array of total stake, `_totalStakeHistory` for quorum `quorumNumber`.
+     * @param quorumNumber The quorum number to get the stake for.
+     * @param index Array index for lookup, within the dynamic array `_totalStakeHistory[quorumNumber]`.
+     */
+    function getTotalStakeUpdateAtIndex(
+        uint8 quorumNumber,
+        uint256 index
+    ) external view returns (StakeUpdate memory) {} 
+
+    /**
+     * @notice Returns the total stake weight for quorum `quorumNumber`, at the `index`-th entry in the
+     * `_totalStakeHistory[quorumNumber]` array if it was the stake at `blockNumber`. Reverts otherwise.
+     * @param quorumNumber The quorum number to get the stake for.
+     * @param index Array index for lookup, within the dynamic array `_totalStakeHistory[quorumNumber]`.
+     * @param blockNumber Block number to make sure the stake is from.
+     * @dev Function will revert if `index` is out-of-bounds.
+     */
+    function getTotalStakeAtBlockNumberFromIndex(
+        uint8 quorumNumber,
+        uint32 blockNumber,
+        uint256 index
+    ) external view returns (uint96) {
+        StakeUpdate memory totalStakeUpdate = _totalStakeHistory[quorumNumber][index];
+        _validateStakeUpdateAtBlockNumber(totalStakeUpdate, blockNumber);
+        return totalStakeUpdate.stake;
+    }
+
+    /**
+     * @notice Returns the indices of the total stakes for the provided `quorumNumbers` at the given `blockNumber`
+     * @param blockNumber Block number to retrieve the stake indices from.
+     * @param quorumNumbers The quorum numbers to get the stake indices for.
+     * @dev Function will revert if there are no indices for the given `blockNumber`
+     */
+    function getTotalStakeIndicesAtBlockNumber(
+        uint32 blockNumber,
+        bytes calldata quorumNumbers
+    ) external view returns (uint32[] memory) {}
+}
