@@ -32,4 +32,6 @@ interface IOpenOraclePriceFeed {
         uint32 startBlock,
         uint32 endBlock
     );
+
+    function setThresholds(uint8 responderThreshold, uint96 stakeThreshold) external;
 }

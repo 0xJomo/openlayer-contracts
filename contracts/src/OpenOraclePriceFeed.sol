@@ -4,7 +4,12 @@ pragma solidity ^0.8.9;
 import "./OpenOracleTaskManager.sol";
 import "./IOpenOraclePriceFeed.sol";
 
-contract OpenOraclePriceFeed is IOpenOraclePriceFeed {
+import {OwnableUpgradeable} from "@openzeppelin-upgrades/contracts/access/OwnableUpgradeable.sol";
+import "@openzeppelin-upgrades/contracts/proxy/utils/Initializable.sol";
+
+
+contract OpenOraclePriceFeed is Initializable, OwnableUpgradeable,
+    IOpenOraclePriceFeed  {
 
     OpenOracleTaskManager internal immutable _openOracleTaskManager;
 
@@ -34,6 +39,10 @@ contract OpenOraclePriceFeed is IOpenOraclePriceFeed {
         _taskType = __taskType;
         _responderThreshold = __responderThreshold;
         _stakeThreshold = __stakeThreshold;
+    }
+
+    function initialize(address initialOwner) public initializer {
+        _transferOwnership(initialOwner);
     }
 
     function requestNewReport() external {
@@ -75,5 +84,10 @@ contract OpenOraclePriceFeed is IOpenOraclePriceFeed {
             _latestCreatedBlock, 
             _latestMetadata.taskResponsedBlock
         );
+    }
+
+    function setThresholds(uint8 responderThreshold, uint96 stakeThreshold) external {
+        _responderThreshold = responderThreshold;
+        _stakeThreshold = stakeThreshold;
     }
 }

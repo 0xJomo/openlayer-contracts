@@ -21,6 +21,7 @@ import "@eigenlayer-middleware/src/OperatorStateRetriever.sol";
 import {OpenOracleServiceManager, IServiceManager} from "../src/OpenOracleServiceManager.sol";
 import {OpenOracleTaskManager} from "../src/OpenOracleTaskManager.sol";
 import {OpenOraclePriceFeed} from "../src/OpenOraclePriceFeed.sol";
+import {IOpenOraclePriceFeed} from "../src/IOpenOraclePriceFeed.sol";
 import {IOpenOracleTaskManager} from "../src/IOpenOracleTaskManager.sol";
 import "../src/ERC20Mock.sol";
 
@@ -69,6 +70,7 @@ contract OpenOracleDeployer is Script, Utils {
     IOpenOracleTaskManager public openOracleTaskManagerImplementation;
 
     OpenOraclePriceFeed public openOraclePriceFeed;
+    IOpenOraclePriceFeed public openOraclePriceFeedImplementation;
 
     function run() external {
         // Eigenlayer contracts
@@ -200,9 +202,19 @@ contract OpenOracleDeployer is Script, Utils {
             )
         );
 
+        openOraclePriceFeed = OpenOraclePriceFeed(
+            address(
+                new TransparentUpgradeableProxy(
+                    address(emptyContract),
+                    address(openOracleProxyAdmin),
+                    ""
+                )
+            )
+        );
+
         operatorStateRetriever = new OperatorStateRetriever();
 
-        openOraclePriceFeed = new OpenOraclePriceFeed(openOracleTaskManager, 4, 1, 0);
+        // openOraclePriceFeed = new OpenOraclePriceFeed(openOracleTaskManager, 4, 1, 0);
 
         // Second, deploy the *implementation* contracts, using the *proxy contracts* as inputs
         {
@@ -318,6 +330,19 @@ contract OpenOracleDeployer is Script, Utils {
             )
         );
 
+        openOraclePriceFeedImplementation = new OpenOraclePriceFeed(openOracleTaskManager, 4, 1, 0);
+
+        openOracleProxyAdmin.upgradeAndCall(
+            TransparentUpgradeableProxy(
+                payable(address(openOraclePriceFeed))
+            ),
+            address(openOraclePriceFeedImplementation),
+            abi.encodeWithSelector(
+                openOraclePriceFeed.initialize.selector,
+                openOracleCommunityMultisig
+            )
+        );
+
         IOpenOracleTaskManager taskManagerInterface = IOpenOracleTaskManager(address(openOracleTaskManager));
         address feedAddress = address(openOraclePriceFeed); // Specify the address you want to add
         taskManagerInterface.addToFeedlist(feedAddress);
@@ -395,6 +420,11 @@ contract OpenOracleDeployer is Script, Utils {
             deployed_addresses,
             "openOraclePriceFeed",
             address(openOraclePriceFeed)
+        );
+        vm.serializeAddress(
+            deployed_addresses, 
+            "openOraclePriceFeedImplementation", 
+            address(openOraclePriceFeedImplementation)
         );
         string memory deployed_addresses_output = vm.serializeAddress(
             deployed_addresses,
