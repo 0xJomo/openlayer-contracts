@@ -7,7 +7,7 @@ import {IIndexRegistry} from "@eigenlayer-middleware/src/interfaces/IIndexRegist
 import {IServiceManager} from "@eigenlayer-middleware/src/interfaces/IServiceManager.sol";
 import {IRegistryCoordinator} from "@eigenlayer-middleware/src/interfaces/IRegistryCoordinator.sol";
 
-abstract contract OpenOracleRegistryCoordinatorStorage is IRegistryCoordinator {
+abstract contract OpenOracleBridgeRegistryCoordinatorStorage is IRegistryCoordinator {
 
     /*******************************************************************************
                                STORAGE TO SYNC

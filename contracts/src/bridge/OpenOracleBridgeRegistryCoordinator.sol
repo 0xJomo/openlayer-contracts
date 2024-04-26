@@ -19,7 +19,7 @@ import {Initializable} from "@openzeppelin-upgrades/contracts/proxy/utils/Initia
 import {EIP712} from "@openzeppelin/contracts/utils/cryptography/draft-EIP712.sol";
 
 import {Pausable} from "eigenlayer-contracts/src/contracts/permissions/Pausable.sol";
-import {OpenOracleRegistryCoordinatorStorage} from "./OpenOracleRegistryCoordinatorStorage.sol";
+import {OpenOracleBridgeRegistryCoordinatorStorage} from "./OpenOracleBridgeRegistryCoordinatorStorage.sol";
 
 /**
  * @title A `RegistryCoordinator` that has three registries:
@@ -29,11 +29,11 @@ import {OpenOracleRegistryCoordinatorStorage} from "./OpenOracleRegistryCoordina
  * 
  * @author Layr Labs, Inc.
  */
-contract OpenOracleRegistryCoordinator is
+contract OpenOracleBridgeRegistryCoordinator is
     EIP712,
     Initializable,
     OwnableUpgradeable,
-    OpenOracleRegistryCoordinatorStorage,
+    OpenOracleBridgeRegistryCoordinatorStorage,
     ISocketUpdater,
     ISignatureUtils
 {
@@ -44,7 +44,7 @@ contract OpenOracleRegistryCoordinator is
         IStakeRegistry _stakeRegistry,
         IBLSApkRegistry _blsApkRegistry
     )
-        OpenOracleRegistryCoordinatorStorage(_stakeRegistry, _blsApkRegistry)
+        OpenOracleBridgeRegistryCoordinatorStorage(_stakeRegistry, _blsApkRegistry)
         EIP712("AVSRegistryCoordinator", "v0.0.1")
     {
         _disableInitializers();

@@ -5,7 +5,7 @@ import {IDelegationManager} from "eigenlayer-contracts/src/contracts/interfaces/
 
 import {IStrategy} from "@eigenlayer-middleware/src/StakeRegistryStorage.sol";
 
-import {OpenOracleStakeRegistryStorage} from "./OpenOracleStakeRegistryStorage.sol";
+import {OpenOracleBridgeStakeRegistryStorage} from "./OpenOracleBridgeStakeRegistryStorage.sol";
 
 
 import {IRegistryCoordinator} from "@eigenlayer-middleware/src/interfaces/IRegistryCoordinator.sol";
@@ -25,14 +25,14 @@ import "@openzeppelin-upgrades/contracts/access/OwnableUpgradeable.sol";
  * It allows an additional functionality (in addition to registering and deregistering) to update the stake of an operator.
  * @author Layr Labs, Inc.
  */
-contract OpenOracleStakeRegistry is OpenOracleStakeRegistryStorage, Initializable, OwnableUpgradeable {
+contract OpenOracleBridgeStakeRegistry is OpenOracleBridgeStakeRegistryStorage, Initializable, OwnableUpgradeable {
 
     using BitmapUtils for *;
     
     constructor(
         IRegistryCoordinator _registryCoordinator,
         IDelegationManager _delegationManager
-    ) OpenOracleStakeRegistryStorage(_registryCoordinator, _delegationManager) {
+    ) OpenOracleBridgeStakeRegistryStorage(_registryCoordinator, _delegationManager) {
         _disableInitializers();
     }
 

@@ -12,7 +12,7 @@ import {IStakeRegistry} from  "@eigenlayer-middleware/src/interfaces/IStakeRegis
  * @author Layr Labs, Inc.
  * @notice This storage contract is separate from the logic to simplify the upgrade process.
  */
-abstract contract OpenOracleStakeRegistryStorage is IStakeRegistry {
+abstract contract OpenOracleBridgeStakeRegistryStorage is IStakeRegistry {
     /*******************************************************************************
                                STORAGE TO SYNC
     *******************************************************************************/

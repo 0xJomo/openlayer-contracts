@@ -8,7 +8,7 @@ import {Initializable} from "@openzeppelin-upgrades/contracts/proxy/utils/Initia
 
 import {BN254} from "@eigenlayer-middleware/src/libraries/BN254.sol";
 
-abstract contract OpenOracleBLSApkRegistryStorage is Initializable, IBLSApkRegistry {
+abstract contract OpenOracleBridgeBLSApkRegistryStorage is Initializable, IBLSApkRegistry {
 
     /*******************************************************************************
                                STORAGE TO SYNC

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity =0.8.12;
 
-import {OpenOracleDelegationManagerStorage} from "./OpenOracleDelegationManagerStorage.sol";
+import {OpenOracleBridgeDelegationManagerStorage} from "./OpenOracleBridgeDelegationManagerStorage.sol";
 
 import {StakeRegistryStorage, IStrategy} from "@eigenlayer-middleware/src/StakeRegistryStorage.sol";
 
@@ -18,7 +18,7 @@ import {IERC20} from "@openzeppelin/contracts/interfaces/IERC20.sol";
 
 import "@openzeppelin-upgrades/contracts/access/OwnableUpgradeable.sol";
 
-contract OpenOracleDelegationManager is OpenOracleDelegationManagerStorage, Initializable, OwnableUpgradeable {
+contract OpenOracleBridgeDelegationManager is OpenOracleBridgeDelegationManagerStorage, Initializable, OwnableUpgradeable {
      // @dev Index for flag that pauses new delegations when set
     uint8 internal constant PAUSED_NEW_DELEGATION = 0;
 
@@ -44,7 +44,7 @@ contract OpenOracleDelegationManager is OpenOracleDelegationManagerStorage, Init
     /**
      * @dev Initializes the immutable addresses of the strategy mananger and slasher.
      */
-    constructor() OpenOracleDelegationManagerStorage() {
+    constructor() OpenOracleBridgeDelegationManagerStorage() {
         _disableInitializers();
         ORIGINAL_CHAIN_ID = block.chainid;
     }

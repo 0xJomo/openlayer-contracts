@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity =0.8.12;
 
-import {OpenOracleBLSApkRegistryStorage} from "./OpenOracleBLSApkRegistryStorage.sol";
+import {OpenOracleBridgeBLSApkRegistryStorage} from "./OpenOracleBridgeBLSApkRegistryStorage.sol";
 
 import {IRegistryCoordinator} from "@eigenlayer-middleware/src/interfaces/IRegistryCoordinator.sol";
 
@@ -10,7 +10,7 @@ import {BN254} from "@eigenlayer-middleware/src/libraries/BN254.sol";
 import "@openzeppelin-upgrades/contracts/access/OwnableUpgradeable.sol";
 
 contract OpenOracleBLSApkRegistry is
-    OpenOracleBLSApkRegistryStorage,
+    OpenOracleBridgeBLSApkRegistryStorage,
     OwnableUpgradeable
 {
     using BN254 for BN254.G1Point;
@@ -18,7 +18,7 @@ contract OpenOracleBLSApkRegistry is
     /// @notice Sets the (immutable) `registryCoordinator` address
     constructor(
         IRegistryCoordinator _registryCoordinator
-    ) OpenOracleBLSApkRegistryStorage(_registryCoordinator) {}
+    ) OpenOracleBridgeBLSApkRegistryStorage(_registryCoordinator) {}
 
     function initialize(address initialOwner) public initializer {
         _transferOwnership(initialOwner);
