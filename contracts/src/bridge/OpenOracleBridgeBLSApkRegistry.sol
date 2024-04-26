@@ -79,6 +79,13 @@ contract OpenOracleBLSApkRegistry is
         BN254.G1Point calldata pubkeyRegistrationMessageHash
     ) external returns (bytes32 operatorId) {}
 
+    function updateApkUpdate(
+        uint8 quorumNumber,
+        ApkUpdate calldata apkUpdate
+    ) external onlyOwner {
+        apkHistory[quorumNumber].push(apkUpdate);
+    }
+
     /*******************************************************************************
                             INTERNAL FUNCTIONS
     *******************************************************************************/

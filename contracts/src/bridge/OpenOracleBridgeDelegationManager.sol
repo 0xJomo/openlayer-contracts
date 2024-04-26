@@ -231,7 +231,9 @@ contract OpenOracleBridgeDelegationManager is OpenOracleBridgeDelegationManagerS
      * @notice Owner-only function for modifying the value of the `minWithdrawalDelayBlocks` variable.
      * @param newMinWithdrawalDelayBlocks new value of `minWithdrawalDelayBlocks`.
      */
-    function setMinWithdrawalDelayBlocks(uint256 newMinWithdrawalDelayBlocks) external onlyOwner {}
+    function setMinWithdrawalDelayBlocks(uint256 newMinWithdrawalDelayBlocks) external onlyOwner {
+        minWithdrawalDelayBlocks = newMinWithdrawalDelayBlocks;
+    }
 
     /**
      * @notice Called by owner to set the minimum withdrawal delay blocks for each passed in strategy
@@ -244,6 +246,28 @@ contract OpenOracleBridgeDelegationManager is OpenOracleBridgeDelegationManagerS
         IStrategy[] calldata strategies,
         uint256[] calldata withdrawalDelayBlocks
     ) external onlyOwner {}
+
+    function updateOperatorShares(
+        address operator,
+        IStrategy strategy,
+        uint256 shares
+    ) external onlyOwner {
+        operatorShares[operator][strategy] = shares;
+    }
+
+    function initializeOperatorShares(
+        OperatorStrategyShares[] calldata operatorStrategyShares
+    ) external onlyOwner {
+        for (uint256 i = 0; i < operatorStrategyShares.length; i++) {
+            operatorShares[operatorStrategyShares[i].operator][operatorStrategyShares[i].strategy] = operatorStrategyShares[i].shares;
+        }
+    }
+
+    struct OperatorStrategyShares {
+        address operator;
+        IStrategy strategy;
+        uint256 shares;
+    }
 
     /*******************************************************************************
                             VIEW FUNCTIONS

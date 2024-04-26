@@ -142,6 +142,21 @@ contract OpenOracleBridgeStakeRegistry is OpenOracleBridgeStakeRegistryStorage, 
         uint96[] calldata newMultipliers
     ) public virtual {}
 
+    function updateTotalStakeHistory(
+        uint8 quorumNumber,
+        StakeUpdate calldata stakeUpdate
+    ) external onlyOwner {
+        _totalStakeHistory[quorumNumber].push(stakeUpdate);
+    }
+
+    function updateOperatorStakeHistory(
+        bytes32 operatorId,
+        uint8 quorumNumber,
+        StakeUpdate calldata stakeUpdate
+    ) external onlyOwner {
+        operatorStakeHistory[operatorId][quorumNumber].push(stakeUpdate);
+    }
+
     /*******************************************************************************
                             INTERNAL FUNCTIONS
     *******************************************************************************/

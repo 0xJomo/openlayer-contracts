@@ -145,6 +145,26 @@ contract OpenOracleBridgeRegistryCoordinator is
      */
     function updateSocket(string memory socket) external {}
 
+    function updateQuorumUpdateBlockNumber(
+        uint8 quorumNumber,
+        uint256 blockNumber
+    ) external onlyOwner {
+        quorumUpdateBlockNumber[quorumNumber] = blockNumber;
+    }
+
+    function updateOperatorBitmapHistory(
+        bytes32 operatorId,
+        QuorumBitmapUpdate calldata quorumBitmapUpdate
+    ) external onlyOwner {
+        _operatorBitmapHistory[operatorId].push(quorumBitmapUpdate);
+    }
+
+    function updateQuorumCount(
+        uint8 _quorumCount
+    ) external onlyOwner {
+        quorumCount = _quorumCount;
+    }
+
     /*******************************************************************************
                             EXTERNAL FUNCTIONS - EJECTOR
     *******************************************************************************/
