@@ -311,6 +311,10 @@ contract OpenOracleDeployer is Script, Utils {
             )
         );
 
+        address[] memory whitelist = new address[](1);
+        whitelist[0] = 0x860B6912C2d0337ef05bbC89b0C2CB6CbAEAB4A5;
+        openOracleServiceManager.addOperatorToRegistryWhitelist(whitelist);
+
         openOracleTaskManagerImplementation = new OpenOracleTaskManager(
             registryCoordinator,
             TASK_RESPONSE_WINDOW_BLOCK
