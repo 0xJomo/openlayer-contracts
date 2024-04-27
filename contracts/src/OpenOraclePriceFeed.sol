@@ -86,7 +86,7 @@ contract OpenOraclePriceFeed is Initializable, OwnableUpgradeable,
         );
     }
 
-    function setThresholds(uint8 responderThreshold, uint96 stakeThreshold) external {
+    function setThresholds(uint8 responderThreshold, uint96 stakeThreshold) external onlyOwner {
         _responderThreshold = responderThreshold;
         _stakeThreshold = stakeThreshold;
     }
