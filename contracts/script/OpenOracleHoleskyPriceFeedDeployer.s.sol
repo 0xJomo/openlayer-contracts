@@ -16,10 +16,10 @@ import "forge-std/console.sol";
 contract OpenOracleHoleskyPriceFeedDeployer is Script, Utils {
     string public deployConfigPath = string(bytes("./script/config/holesky/testnet.config.json"));
 
-    uint8 taskTypeLower = 5;
+    uint8 taskTypeLower = 0;
     uint8 taskTypeUpper = 13;
-    uint8 responderThreshold = 3;
-    uint96 stakeThreshold = 10000000000000000;
+    uint8 responderThreshold = 5;
+    uint96 stakeThreshold = 800000000000000000000;
 
     function toString(uint8 value) internal pure returns (string memory) {
         if (value == 0) {
@@ -88,7 +88,7 @@ contract OpenOracleHoleskyPriceFeedDeployer is Script, Utils {
             deployed_addresses_output
         );
 
-        writeOutput(finalJson, "open_oracle_avs_pricefeeds_output");
+        writeOutput(finalJson, "open_oracle_avs_pricefeeds_output_v2");
 
         vm.stopBroadcast();
     }
