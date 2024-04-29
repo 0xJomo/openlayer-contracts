@@ -9,7 +9,7 @@ import {BN254} from "@eigenlayer-middleware/src/libraries/BN254.sol";
 
 import "@openzeppelin-upgrades/contracts/access/OwnableUpgradeable.sol";
 
-contract OpenOracleBLSApkRegistry is
+contract OpenOracleBridgeBLSApkRegistry is
     OpenOracleBridgeBLSApkRegistryStorage,
     OwnableUpgradeable
 {
