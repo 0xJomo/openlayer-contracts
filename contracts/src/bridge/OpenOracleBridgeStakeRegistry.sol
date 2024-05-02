@@ -149,12 +149,34 @@ contract OpenOracleBridgeStakeRegistry is OpenOracleBridgeStakeRegistryStorage, 
         _totalStakeHistory[quorumNumber].push(stakeUpdate);
     }
 
+    function initializeTotalStakeHistories(
+        bytes calldata quorumNumbers,
+        uint96[] calldata stakes
+    ) external onlyOwner {
+        require(quorumNumbers.length == stakes.length, "quorumNumbers and stakes length should match");
+        for (uint256 i = 0; i < quorumNumbers.length; i++) {
+            _totalStakeHistory[uint8(quorumNumbers[i])].push(StakeUpdate(uint32(block.number), 0, stakes[i]));
+        }
+    }
+
     function updateOperatorStakeHistory(
         bytes32 operatorId,
         uint8 quorumNumber,
         StakeUpdate calldata stakeUpdate
     ) external onlyOwner {
         operatorStakeHistory[operatorId][quorumNumber].push(stakeUpdate);
+    }
+
+    function initializeOperatorStakeHistories(
+        bytes32[] calldata operatorIds,
+        bytes calldata quorumNumbers,
+        StakeUpdate[] calldata stakeUpdates
+    ) external onlyOwner {
+        require(operatorIds.length == quorumNumbers.length, "quorumNumbers and stakes length should match");
+        require(operatorIds.length == stakeUpdates.length, "quorumNumbers and stakeUpdates length should match");
+        for (uint256 i = 0; i < operatorIds.length; i++) {
+            operatorStakeHistory[operatorIds[i]][uint8(quorumNumbers[i])].push(stakeUpdates[i]);
+        }
     }
 
     /*******************************************************************************

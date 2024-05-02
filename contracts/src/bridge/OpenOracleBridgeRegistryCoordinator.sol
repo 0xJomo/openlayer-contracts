@@ -146,10 +146,17 @@ contract OpenOracleBridgeRegistryCoordinator is
     function updateSocket(string memory socket) external {}
 
     function updateQuorumUpdateBlockNumber(
-        uint8 quorumNumber,
-        uint256 blockNumber
+        uint8 quorumNumber
     ) external onlyOwner {
-        quorumUpdateBlockNumber[quorumNumber] = blockNumber;
+        quorumUpdateBlockNumber[quorumNumber] = block.number;
+    }
+
+    function updateQuorumsUpdateBlockNumber(
+        bytes calldata quorumNumbers
+    ) external onlyOwner {
+        for (uint256 i = 0; i < quorumNumbers.length; i++) {
+            quorumUpdateBlockNumber[uint8(quorumNumbers[i])] = block.number;
+        }
     }
 
     function updateOperatorBitmapHistory(
@@ -157,6 +164,17 @@ contract OpenOracleBridgeRegistryCoordinator is
         QuorumBitmapUpdate calldata quorumBitmapUpdate
     ) external onlyOwner {
         _operatorBitmapHistory[operatorId].push(quorumBitmapUpdate);
+    }
+
+    function initializeOperatorsBitmapHistories(
+        bytes32[] calldata operatorIds,
+        uint192[] calldata quorumBitmaps
+    ) external onlyOwner {
+        require(operatorIds.length == quorumBitmaps.length,
+            "operatorId and quorumBitmaps input length not matching");
+        for (uint256 i = 0; i < operatorIds.length; i++) {
+            _operatorBitmapHistory[operatorIds[i]].push(QuorumBitmapUpdate(uint32(block.number), 0, quorumBitmaps[i]));
+        }
     }
 
     function updateQuorumCount(

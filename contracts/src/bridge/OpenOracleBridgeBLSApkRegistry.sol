@@ -80,10 +80,38 @@ contract OpenOracleBridgeBLSApkRegistry is
     ) external returns (bytes32 operatorId) {}
 
     function updateApkUpdate(
-        uint8 quorumNumber,
-        ApkUpdate calldata apkUpdate
+        bytes calldata quorumNumbers,
+        bytes24[] calldata apkHashes
     ) external onlyOwner {
-        apkHistory[quorumNumber].push(apkUpdate);
+        require(apkHashes.length == quorumNumbers.length, "apkHashes size should match quorumNumbers");
+        for (uint256 i = 0; i < quorumNumbers.length; i++) {
+            uint8 quorumNumber = uint8(quorumNumbers[i]);
+            bytes24 newApkHash = apkHashes[i];
+
+            uint256 historyLength = apkHistory[quorumNumber].length;
+            if (historyLength == 0) {
+                apkHistory[quorumNumber].push(ApkUpdate({
+                    apkHash: newApkHash,
+                    updateBlockNumber: uint32(block.number),
+                    nextUpdateBlockNumber: 0
+                }));
+                continue;
+            }
+
+            // Update apk history. If the last update was made in this block, update the entry
+            // Otherwise, push a new historical entry and update the prev->next pointer
+            ApkUpdate storage lastUpdate = apkHistory[quorumNumber][historyLength - 1];
+            if (lastUpdate.updateBlockNumber == uint32(block.number)) {
+                lastUpdate.apkHash = newApkHash;
+            } else {
+                lastUpdate.nextUpdateBlockNumber = uint32(block.number);
+                apkHistory[quorumNumber].push(ApkUpdate({
+                    apkHash: newApkHash,
+                    updateBlockNumber: uint32(block.number),
+                    nextUpdateBlockNumber: 0
+                }));
+            }
+        }
     }
 
     /*******************************************************************************
