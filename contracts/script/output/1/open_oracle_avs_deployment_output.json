@@ -1,0 +1,23 @@
+{
+  "addresses": {
+    "blsApkRegistry": "0x114a54571a282BB5fa3F46B35d28695059665ee1",
+    "blsApkRegistryImplementation": "0x433f341a830C7E3302d19DF2c4e757E70F91714A",
+    "indexRegistry": "0x3b4EDCE79a048501239106fCd0fB8a1c5c0C0c40",
+    "indexRegistryImplementation": "0xB00cff8047dD15c6a1D5D8956beBC9371D890283",
+    "openOracleServiceManager": "0xF7fcff55d5FDAf2C3Bbeb140Be5e62a2c7D26Db3",
+    "openOracleServiceManagerImplementation": "0x9f63Dad077d13DB944694B2F59c63F4e942d4766",
+    "openOracleTaskManager": "0x4e49A4D07f7a10C842a86EAbD18a024b9b54d15E",
+    "openOracleTaskManagerImplementation": "0xae6B741D965f85F72f1D2F0eD82402CF1421f71b",
+    "operatorStateRetriever": "0x8b57BC00cF01841a78b09Fabe3C2D49A1303A060",
+    "pauserRegistry": "0x6dF1444aE3e9b4f5dFff0bc888eb978b38C1aC90",
+    "proxyAdmin": "0x51288463A0a430c94603221242A5084070D9Aed6",
+    "registryCoordinator": "0x7dd7320044013f7f49B1b6D67aED10726fe6e62b",
+    "registryCoordinatorImplementation": "0xE43468D321BfDFF538AD63CdB599bEa2DE2D6Ffb",
+    "stakeRegistry": "0x8702C01EAbC9E5E376ACaB9358383DBDdCdDF018",
+    "stakeRegistryImplementation": "0x2DA8a3661DaA9A9262cec882263AC0def874d6c3"
+  },
+  "chainInfo": {
+    "chainId": 1,
+    "deploymentBlock": 19798712
+  }
+}
