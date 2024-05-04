@@ -1,0 +1,6 @@
+{
+  "taskTypeLower": 0,
+  "taskTypeUpper": 2,
+  "responderThreshold": 10,
+  "stakeThreshold": 100000000000000000000
+}
