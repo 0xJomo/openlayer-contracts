@@ -142,46 +142,103 @@ contract OpenOracleBridgeStakeRegistry is OpenOracleBridgeStakeRegistryStorage, 
         uint96[] calldata newMultipliers
     ) public virtual {}
 
-    function updateTotalStakeHistory(
-        uint8 quorumNumber,
-        StakeUpdate calldata stakeUpdate
-    ) external onlyOwner {
-        _totalStakeHistory[quorumNumber].push(stakeUpdate);
-    }
-
-    function initializeTotalStakeHistories(
+    function updateTotalStakeHistories(
         bytes calldata quorumNumbers,
         uint96[] calldata stakes
     ) external onlyOwner {
         require(quorumNumbers.length == stakes.length, "quorumNumbers and stakes length should match");
         for (uint256 i = 0; i < quorumNumbers.length; i++) {
-            _totalStakeHistory[uint8(quorumNumbers[i])].push(StakeUpdate(uint32(block.number), 0, stakes[i]));
+            uint8 quorumNumber = uint8(quorumNumbers[i]);
+            uint96 newStake = stakes[i];
+
+            uint256 historyLength = _totalStakeHistory[quorumNumber].length;
+            if (historyLength == 0) {
+                _totalStakeHistory[quorumNumber].push(StakeUpdate({
+                    updateBlockNumber: uint32(block.number),
+                    nextUpdateBlockNumber: 0,
+                    stake: newStake
+                }));
+                continue;
+            }
+            StakeUpdate storage lastUpdate = _totalStakeHistory[quorumNumber][historyLength - 1];
+            if (lastUpdate.updateBlockNumber == uint32(block.number)) {
+                lastUpdate.stake = newStake;
+            } else {
+                lastUpdate.nextUpdateBlockNumber = uint32(block.number);
+                _totalStakeHistory[quorumNumber].push(StakeUpdate({
+                    updateBlockNumber: uint32(block.number),
+                    nextUpdateBlockNumber: 0,
+                    stake: newStake
+                }));
+            }
         }
     }
 
-    function updateOperatorStakeHistory(
-        bytes32 operatorId,
-        uint8 quorumNumber,
-        StakeUpdate calldata stakeUpdate
-    ) external onlyOwner {
-        operatorStakeHistory[operatorId][quorumNumber].push(stakeUpdate);
-    }
-
-    function initializeOperatorStakeHistories(
+    function updateOperatorStakeHistories(
         bytes32[] calldata operatorIds,
         bytes calldata quorumNumbers,
-        StakeUpdate[] calldata stakeUpdates
+        uint96[] calldata stakes
     ) external onlyOwner {
         require(operatorIds.length == quorumNumbers.length, "quorumNumbers and stakes length should match");
-        require(operatorIds.length == stakeUpdates.length, "quorumNumbers and stakeUpdates length should match");
+        require(operatorIds.length == stakes.length, "quorumNumbers and stakeUpdates length should match");
         for (uint256 i = 0; i < operatorIds.length; i++) {
-            operatorStakeHistory[operatorIds[i]][uint8(quorumNumbers[i])].push(stakeUpdates[i]);
+            _recordOperatorStakeUpdate(operatorIds[i], uint8(quorumNumbers[i]), stakes[i]);
         }
     }
 
     /*******************************************************************************
                             INTERNAL FUNCTIONS
     *******************************************************************************/
+
+     /**
+     * @notice Records that `operatorId`'s current stake for `quorumNumber` is now `newStake`
+     */
+    function _recordOperatorStakeUpdate(
+        bytes32 operatorId,
+        uint8 quorumNumber,
+        uint96 newStake
+    ) internal {
+
+        uint96 prevStake;
+        uint256 historyLength = operatorStakeHistory[operatorId][quorumNumber].length;
+
+        if (historyLength == 0) {
+            // No prior stake history - push our first entry
+            operatorStakeHistory[operatorId][quorumNumber].push(StakeUpdate({
+                updateBlockNumber: uint32(block.number),
+                nextUpdateBlockNumber: 0,
+                stake: newStake
+            }));
+        } else {
+            // We have prior stake history - fetch our last-recorded stake
+            StakeUpdate storage lastUpdate = operatorStakeHistory[operatorId][quorumNumber][historyLength-1]; 
+            prevStake = lastUpdate.stake;
+
+            // Short-circuit in case there's no change in stake
+            if (prevStake == newStake) {
+                return;
+            }
+
+            /**
+             * If our last stake entry was made in the current block, update the entry
+             * Otherwise, push a new entry and update the previous entry's "next" field
+             */ 
+            if (lastUpdate.updateBlockNumber == uint32(block.number)) {
+                lastUpdate.stake = newStake;
+            } else {
+                lastUpdate.nextUpdateBlockNumber = uint32(block.number);
+                operatorStakeHistory[operatorId][quorumNumber].push(StakeUpdate({
+                    updateBlockNumber: uint32(block.number),
+                    nextUpdateBlockNumber: 0,
+                    stake: newStake
+                }));
+            }
+        }
+
+        // Log update and return stake delta
+        emit OperatorStakeUpdate(operatorId, quorumNumber, newStake);
+        return;
+    }
 
     /// @notice Checks that the `stakeUpdate` was valid at the given `blockNumber`
     function _validateStakeUpdateAtBlockNumber(

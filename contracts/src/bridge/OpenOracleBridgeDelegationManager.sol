@@ -17,8 +17,12 @@ import {BitmapUtils} from "@eigenlayer-middleware/src/libraries/BitmapUtils.sol"
 import {IERC20} from "@openzeppelin/contracts/interfaces/IERC20.sol";
 
 import "@openzeppelin-upgrades/contracts/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+
 
 contract OpenOracleBridgeDelegationManager is OpenOracleBridgeDelegationManagerStorage, Initializable, OwnableUpgradeable {
+    using SafeMath for uint256;
+
      // @dev Index for flag that pauses new delegations when set
     uint8 internal constant PAUSED_NEW_DELEGATION = 0;
 
@@ -248,11 +252,22 @@ contract OpenOracleBridgeDelegationManager is OpenOracleBridgeDelegationManagerS
     ) external onlyOwner {}
 
     function updateOperatorShares(
-        address operator,
-        IStrategy strategy,
-        uint256 shares
+        OperatorStrategySharesUpdate[] calldata operatorStrategySharesUpdate
     ) external onlyOwner {
-        operatorShares[operator][strategy] = shares;
+        for (uint256 i = 0; i < operatorStrategySharesUpdate.length; i++) {
+            if (operatorStrategySharesUpdate[i].isIncrease) {
+                operatorShares[operatorStrategySharesUpdate[i].operator][operatorStrategySharesUpdate[i].strategy] = operatorShares[operatorStrategySharesUpdate[i].operator][operatorStrategySharesUpdate[i].strategy].add(operatorStrategySharesUpdate[i].shares);
+            } else {
+                operatorShares[operatorStrategySharesUpdate[i].operator][operatorStrategySharesUpdate[i].strategy] = operatorShares[operatorStrategySharesUpdate[i].operator][operatorStrategySharesUpdate[i].strategy].sub(operatorStrategySharesUpdate[i].shares);
+            }
+        }
+    }
+
+    struct OperatorStrategySharesUpdate {
+        address operator;
+        IStrategy strategy;
+        uint256 shares;
+        bool isIncrease;
     }
 
     function initializeOperatorShares(

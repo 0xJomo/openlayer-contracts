@@ -145,12 +145,6 @@ contract OpenOracleBridgeRegistryCoordinator is
      */
     function updateSocket(string memory socket) external {}
 
-    function updateQuorumUpdateBlockNumber(
-        uint8 quorumNumber
-    ) external onlyOwner {
-        quorumUpdateBlockNumber[quorumNumber] = block.number;
-    }
-
     function updateQuorumsUpdateBlockNumber(
         bytes calldata quorumNumbers
     ) external onlyOwner {
@@ -161,9 +155,9 @@ contract OpenOracleBridgeRegistryCoordinator is
 
     function updateOperatorBitmapHistory(
         bytes32 operatorId,
-        QuorumBitmapUpdate calldata quorumBitmapUpdate
+        uint192 quorumBitmap
     ) external onlyOwner {
-        _operatorBitmapHistory[operatorId].push(quorumBitmapUpdate);
+        _updateOperatorBitmap(operatorId, quorumBitmap);
     }
 
     function initializeOperatorsBitmapHistories(
@@ -173,7 +167,7 @@ contract OpenOracleBridgeRegistryCoordinator is
         require(operatorIds.length == quorumBitmaps.length,
             "operatorId and quorumBitmaps input length not matching");
         for (uint256 i = 0; i < operatorIds.length; i++) {
-            _operatorBitmapHistory[operatorIds[i]].push(QuorumBitmapUpdate(uint32(block.number), 0, quorumBitmaps[i]));
+            _updateOperatorBitmap(operatorIds[i], quorumBitmaps[i]);
         }
     }
 
@@ -250,6 +244,43 @@ contract OpenOracleBridgeRegistryCoordinator is
         uint32[] numOperatorsPerQuorum;
         uint96[] operatorStakes;
         uint96[] totalStakes;
+    }
+
+    /**
+     * @notice Record an update to an operator's quorum bitmap.
+     * @param newBitmap is the most up-to-date set of bitmaps the operator is registered for
+     */
+    function _updateOperatorBitmap(bytes32 operatorId, uint192 newBitmap) internal {
+
+        uint256 historyLength = _operatorBitmapHistory[operatorId].length;
+
+        if (historyLength == 0) {
+            // No prior bitmap history - push our first entry
+            _operatorBitmapHistory[operatorId].push(QuorumBitmapUpdate({
+                updateBlockNumber: uint32(block.number),
+                nextUpdateBlockNumber: 0,
+                quorumBitmap: newBitmap
+            }));
+        } else {
+            // We have prior history - fetch our last-recorded update
+            QuorumBitmapUpdate storage lastUpdate = _operatorBitmapHistory[operatorId][historyLength - 1];
+
+            /**
+             * If the last update was made in the current block, update the entry.
+             * Otherwise, push a new entry and update the previous entry's "next" field
+             */
+            if (lastUpdate.updateBlockNumber == uint32(block.number)) {
+                lastUpdate.quorumBitmap = newBitmap;
+            } else {
+                lastUpdate.nextUpdateBlockNumber = uint32(block.number);
+                _operatorBitmapHistory[operatorId].push(QuorumBitmapUpdate({
+                    updateBlockNumber: uint32(block.number),
+                    nextUpdateBlockNumber: 0,
+                    quorumBitmap: newBitmap
+                }));
+            }
+        }
+        emit OperatorQuorumBitmapUpdated(operatorId, newBitmap);
     }
 
     /*******************************************************************************
