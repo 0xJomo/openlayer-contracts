@@ -105,10 +105,7 @@ contract OpenOraclePriceFeedsDeployer is Script, Utils {
                 )
             );
             IOpenOraclePriceFeed openOraclePriceFeedImplementation = new OpenOraclePriceFeed(
-                openOracleTaskManager,
-                i, 
-                deployParams.responderThreshold, 
-                deployParams.stakeThreshold
+                openOracleTaskManager
             );
 
             vm.serializeAddress(
@@ -129,7 +126,10 @@ contract OpenOraclePriceFeedsDeployer is Script, Utils {
                 address(openOraclePriceFeedImplementation),
                 abi.encodeWithSelector(
                     openOraclePriceFeed.initialize.selector,
-                    msg.sender
+                    msg.sender,
+                    i, 
+                    deployParams.responderThreshold, 
+                    deployParams.stakeThreshold
                 )
             );
 

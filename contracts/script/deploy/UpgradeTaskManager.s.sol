@@ -6,9 +6,9 @@ import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 import "@eigenlayer-middleware/src/RegistryCoordinator.sol" as regcoord;
 import "@eigenlayer/contracts/permissions/PauserRegistry.sol";
 
-import {OpenOracleTaskManager, IOpenOracleTaskManager} from "../src/OpenOracleTaskManager.sol";
+import {OpenOracleTaskManager, IOpenOracleTaskManager} from "../../src/OpenOracleTaskManager.sol";
 
-import {Utils} from "./utils/Utils.sol";
+import {Utils} from "../utils/Utils.sol";
 
 import "forge-std/Test.sol";
 import "forge-std/Script.sol";
@@ -83,6 +83,8 @@ contract UpgradeTaskManager is Script, Utils {
         address openOracleCommunityMultisig,
         address openOraclePauser
     ) internal {
+        // READ JSON CONFIG DATA
+        string memory config_data = vm.readFile(deployConfigPath);
 
         // parse initalization params and permissions from config data
         DeployParams memory deployParams = _parseDeployParams(config_data);
