@@ -264,9 +264,8 @@ contract OpenOracleBridgeStakeRegistry is OpenOracleBridgeStakeRegistryStorage, 
      * @notice This function computes the total weight of the @param operator in the quorum @param quorumNumber.
      * @dev this method DOES NOT check that the quorum exists
      * @return `uint96` The weighted sum of the operator's shares across each strategy considered by the quorum
-     * @return `bool` True if the operator meets the quorum's minimum stake
      */
-    function _weightOfOperatorForQuorum(uint8 quorumNumber, address operator) internal virtual view returns (uint96, bool) {
+    function _weightOfOperatorForQuorum(uint8 quorumNumber, address operator) internal virtual view returns (uint96) {
         uint96 weight;
         uint256 stratsLength = strategyParamsLength(quorumNumber);
         StrategyParams memory strategyAndMultiplier;
@@ -281,10 +280,7 @@ contract OpenOracleBridgeStakeRegistry is OpenOracleBridgeStakeRegistryStorage, 
                 weight += uint96(strategyShares[i] * strategyAndMultiplier.multiplier / WEIGHTING_DIVISOR);
             }
         }
-
-        // Return the weight, and `true` if the operator meets the quorum's minimum stake
-        bool hasMinimumStake = weight >= minimumStakeForQuorum[quorumNumber];
-        return (weight, hasMinimumStake);
+        return weight;
     }
 
     /// @notice Returns `true` if the quorum has been initialized
@@ -302,7 +298,7 @@ contract OpenOracleBridgeStakeRegistry is OpenOracleBridgeStakeRegistryStorage, 
         uint8 quorumNumber, 
         address operator
     ) public virtual view returns (uint96) {
-        (uint96 stake, ) = _weightOfOperatorForQuorum(quorumNumber, operator);
+        uint96 stake = _weightOfOperatorForQuorum(quorumNumber, operator);
         return stake;
     }
 
