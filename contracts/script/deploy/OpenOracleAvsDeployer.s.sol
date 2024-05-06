@@ -34,7 +34,6 @@ import "forge-std/console.sol";
 contract OpenOracleAvsDeployer is Script, Utils {
     string public deployConfigPath = string.concat("./script/config/", vm.toString(block.chainid), "/config.avs.json");
 
-    // Credible Squaring contracts
     ProxyAdmin public openOracleProxyAdmin;
     PauserRegistry public openOraclePauserReg;
 

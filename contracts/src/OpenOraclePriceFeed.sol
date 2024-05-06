@@ -30,19 +30,21 @@ contract OpenOraclePriceFeed is Initializable, OwnableUpgradeable,
     } 
 
     constructor(
-        OpenOracleTaskManager __openOracleTaskManager,
+        OpenOracleTaskManager __openOracleTaskManager
+    ) {
+        _openOracleTaskManager = __openOracleTaskManager;
+    }
+
+    function initialize(
+        address initialOwner,
         uint8 __taskType,
         uint8 __responderThreshold,
         uint96 __stakeThreshold
-    ) {
-        _openOracleTaskManager = __openOracleTaskManager;
+    ) public initializer {
+        _transferOwnership(initialOwner);
         _taskType = __taskType;
         _responderThreshold = __responderThreshold;
         _stakeThreshold = __stakeThreshold;
-    }
-
-    function initialize(address initialOwner) public initializer {
-        _transferOwnership(initialOwner);
     }
 
     function requestNewReport() external {
