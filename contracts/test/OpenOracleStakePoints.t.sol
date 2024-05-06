@@ -45,6 +45,22 @@ contract OpenOracleStakePointsTest is Test {
         assertEq(stakeContract.totalStake(user),1);
     }
 
+    function testFailStakeZero() public {
+        address user = address(this);
+        stakeContract.addToken(address(token), 1000000);
+        token.mint(user, 10**18);
+        token.approve(address(stakeContract), 10**18);
+        stakeContract.stake(address(token), 0);
+    }
+
+    function testFailStakeNotExist() public {
+        address user = address(this);
+        stakeContract.addToken(address(token), 1000000);
+        token.mint(user, 10**18);
+        token.approve(address(stakeContract), 10**18);
+        stakeContract.stake(address(0), 0);
+    }
+
     function testManyStake() public {
         address user = address(this);
         stakeContract.addToken(address(token), 1000000);
@@ -82,6 +98,42 @@ contract OpenOracleStakePointsTest is Test {
         assertEq(stakeContract.totalStake(user),0);
     }
 
+    function testManyUnStake() public {
+        testManyStake();
+        address user = address(this);
+        stakeContract.unStake(address(token), 1.1*10**18);
+        uint256 stake = stakeContract.tokenStake(user, address(token));
+        assertEq(stakeContract.tokenStake(user, address(token)),9*10**17);
+        assertEq(stakeContract.totalStake(user),0);
+        stakeContract.unStake(address(token), 9*10**17);
+        assertEq(stakeContract.tokenStake(user, address(token)),0);
+        assertEq(stakeContract.totalStake(user),0);
+    }
+
+    function testUnStakeWithLess() public {
+        testLessStake();
+        address user = address(this);
+        stakeContract.unStake(address(token), 10**17);
+        uint256 stake = stakeContract.tokenStake(user, address(token));
+        assertEq(stakeContract.tokenStake(user, address(token)),0);
+        assertEq(stakeContract.totalStake(user),0);
+    }
+
+    function testFailUnStakeZero() public {
+        testStake();
+        stakeContract.unStake(address(token), 0);
+    }
+
+    function testFailUnStakeNotExist() public {
+        testStake();
+        stakeContract.unStake(address(0), 0);
+    }
+
+    function testFailUnStakeNotEnough() public {
+        testStake();
+        stakeContract.unStake(address(token), 2*10**18);
+    }
+
     function testLessUnStake() public {
         testStake();
         address user = address(this);
@@ -98,6 +150,7 @@ contract OpenOracleStakePointsTest is Test {
         uint256 currentTime = block.timestamp;
         vm.warp(currentTime + 3600);
         assertEq(stakeContract.getRealTimePoints(user),1);
+        assertEq(stakeContract.getPoints(user),0);
     }
 
     function testFailCheckPoint() public {
