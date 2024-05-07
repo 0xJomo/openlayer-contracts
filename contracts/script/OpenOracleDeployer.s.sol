@@ -334,7 +334,7 @@ contract OpenOracleDeployer is Script, Utils {
             )
         );
 
-        openOraclePriceFeedImplementation = new OpenOraclePriceFeed(openOracleTaskManager, 4, 1, 0);
+        openOraclePriceFeedImplementation = new OpenOraclePriceFeed(openOracleTaskManager);
 
         openOracleProxyAdmin.upgradeAndCall(
             TransparentUpgradeableProxy(
