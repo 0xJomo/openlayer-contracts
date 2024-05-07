@@ -1,15 +1,15 @@
 pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import {OwnableUpgradeable} from "@openzeppelin-upgrades/contracts/access/OwnableUpgradeable.sol";
 
-contract OpenOracleStakePoints is Ownable {
+contract OpenOracleStake is OwnableUpgradeable {
 
-    uint256 private constant BASE_FRACTION = 1000000;
+    // deal amount
+    uint256 private constant BASE_FRACTION = 10**6;
     uint256 private constant SECONDS_PER_HOUR = 3600;
-
-
-    uint256 private perReward = 1;
+    // deal time reward
+    uint256 public constant PER_REWARD = 10**8;
 
     // token => fraction
     mapping(address => uint256) public tokenConfig;
@@ -20,9 +20,15 @@ contract OpenOracleStakePoints is Ownable {
     // user => token => stake
     mapping(address => mapping(address => uint256)) public tokenStake;
     // user => points
-    mapping(address => uint256) public points;
+    mapping(address => uint256) private points;
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
+        _disableInitializers();
+    }
+
+    function initialize() initializer public {
+        __Ownable_init();
     }
 
     function addToken(address token, uint256 fraction) external onlyOwner{
@@ -50,20 +56,26 @@ contract OpenOracleStakePoints is Ownable {
 
     function updatePoint(IERC20Metadata tokenContract, uint256 amount, bool isStake) private{
         address token = address(tokenContract);
-        points[msg.sender] += (totalStake[msg.sender] * perReward * (block.timestamp - lastUpdateTime[msg.sender]) / SECONDS_PER_HOUR);
+        points[msg.sender] += (totalStake[msg.sender] * PER_REWARD * (block.timestamp - lastUpdateTime[msg.sender]) / SECONDS_PER_HOUR);
         lastUpdateTime[msg.sender] = block.timestamp;
         if(totalStake[msg.sender] > 0){
-            totalStake[msg.sender] -= (tokenStake[msg.sender][token] * tokenConfig[token] / BASE_FRACTION / 10 ** tokenContract.decimals());
+            totalStake[msg.sender] -= (tokenStake[msg.sender][token] * tokenConfig[token] / 10 ** tokenContract.decimals());
         }
         isStake ? (tokenStake[msg.sender][token] += amount) : (tokenStake[msg.sender][token] -= amount);
-        totalStake[msg.sender] += (tokenStake[msg.sender][token] * tokenConfig[token] / BASE_FRACTION / 10 ** tokenContract.decimals());
+        totalStake[msg.sender] += (tokenStake[msg.sender][token] * tokenConfig[token] / 10 ** tokenContract.decimals());
     }
 
+    /**
+     * @dev Returns the amount of points a user has earned.
+     */
     function getPoints(address user) external view returns(uint256){
-        return points[user];
+        return points[user] / BASE_FRACTION;
     }
 
+    /**
+     * @dev Returns the amount of points a user has earned and the current time.
+     */
     function getRealTimePoints(address user) external view returns(uint256){
-        return points[user] + (totalStake[user] * perReward * (block.timestamp - lastUpdateTime[user]) / SECONDS_PER_HOUR);
+        return (points[user] + (totalStake[user] * PER_REWARD * (block.timestamp - lastUpdateTime[user]) / SECONDS_PER_HOUR)) / BASE_FRACTION;
     }
 }

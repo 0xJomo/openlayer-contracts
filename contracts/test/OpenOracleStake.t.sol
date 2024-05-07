@@ -1,17 +1,22 @@
 pragma solidity ^0.8.9;
 
 import "forge-std/Test.sol";
-import "../src/OpenOracleStakePoints.sol";
+import "../src/OpenOracleStake.sol";
 import "../src/ERC20Mock2.sol";
+import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
+import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
-contract OpenOracleStakePointsTest is Test {
+contract OpenOracleStakeTest is Test {
 
-    OpenOracleStakePoints public stakeContract;
+    OpenOracleStake public stakeContract;
     ERC20Mock2 public token;
 
     function setUp() public {
         token = new ERC20Mock2("ERC20Mock2","E20");
-        stakeContract = new OpenOracleStakePoints();
+        OpenOracleStake stakeContractImpl = new OpenOracleStake();
+        ProxyAdmin proxyAdmin = new ProxyAdmin();
+        TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(address(stakeContractImpl),address(proxyAdmin), abi.encodeWithSelector(stakeContractImpl.initialize.selector));
+        stakeContract = OpenOracleStake(address(proxy));
     }
 
     function testAddToken() public {
@@ -40,9 +45,8 @@ contract OpenOracleStakePointsTest is Test {
         token.mint(user, 10**18);
         token.approve(address(stakeContract), 10**18);
         stakeContract.stake(address(token), 10**18);
-        uint256 stake = stakeContract.tokenStake(user, address(token));
         assertEq(stakeContract.tokenStake(user, address(token)),10**18);
-        assertEq(stakeContract.totalStake(user),1);
+        assertEq(stakeContract.totalStake(user),1*10**6);
     }
 
     function testFailStakeZero() public {
@@ -67,15 +71,14 @@ contract OpenOracleStakePointsTest is Test {
         token.mint(user, 10**18);
         token.approve(address(stakeContract), 10**18);
         stakeContract.stake(address(token), 10**18);
-        uint256 stake = stakeContract.tokenStake(user, address(token));
         assertEq(stakeContract.tokenStake(user, address(token)),10**18);
-        assertEq(stakeContract.totalStake(user),1);
+        assertEq(stakeContract.totalStake(user),1*10**6);
         token.mint(user, 10**18);
         token.approve(address(stakeContract), 10**18);
         stakeContract.stake(address(token), 10**18);
 
         assertEq(stakeContract.tokenStake(user, address(token)),2*10**18);
-        assertEq(stakeContract.totalStake(user),1*2);
+        assertEq(stakeContract.totalStake(user),1*2*10**6);
     }
 
     function testLessStake() public {
@@ -84,16 +87,14 @@ contract OpenOracleStakePointsTest is Test {
         token.mint(user, 10**17);
         token.approve(address(stakeContract), 10**17);
         stakeContract.stake(address(token), 10**17);
-        uint256 stake = stakeContract.tokenStake(user, address(token));
         assertEq(stakeContract.tokenStake(user, address(token)),10**17);
-        assertEq(stakeContract.totalStake(user),0);
+        assertEq(stakeContract.totalStake(user),10**5);
     }
 
     function testUnStake() public {
         testStake();
         address user = address(this);
         stakeContract.unStake(address(token), 10**18);
-        uint256 stake = stakeContract.tokenStake(user, address(token));
         assertEq(stakeContract.tokenStake(user, address(token)),0);
         assertEq(stakeContract.totalStake(user),0);
     }
@@ -101,10 +102,9 @@ contract OpenOracleStakePointsTest is Test {
     function testManyUnStake() public {
         testManyStake();
         address user = address(this);
-        stakeContract.unStake(address(token), 1.1*10**18);
-        uint256 stake = stakeContract.tokenStake(user, address(token));
+        stakeContract.unStake(address(token), 11*10**17);
         assertEq(stakeContract.tokenStake(user, address(token)),9*10**17);
-        assertEq(stakeContract.totalStake(user),0);
+        assertEq(stakeContract.totalStake(user),9*10**5);
         stakeContract.unStake(address(token), 9*10**17);
         assertEq(stakeContract.tokenStake(user, address(token)),0);
         assertEq(stakeContract.totalStake(user),0);
@@ -114,7 +114,6 @@ contract OpenOracleStakePointsTest is Test {
         testLessStake();
         address user = address(this);
         stakeContract.unStake(address(token), 10**17);
-        uint256 stake = stakeContract.tokenStake(user, address(token));
         assertEq(stakeContract.tokenStake(user, address(token)),0);
         assertEq(stakeContract.totalStake(user),0);
     }
@@ -138,9 +137,8 @@ contract OpenOracleStakePointsTest is Test {
         testStake();
         address user = address(this);
         stakeContract.unStake(address(token), 10**17);
-        uint256 stake = stakeContract.tokenStake(user, address(token));
         assertEq(stakeContract.tokenStake(user, address(token)),9*10**17);
-        assertEq(stakeContract.totalStake(user),0);
+        assertEq(stakeContract.totalStake(user),9*10**5);
     }
 
     function testCheckPoint() public {
@@ -149,17 +147,17 @@ contract OpenOracleStakePointsTest is Test {
         assertEq(stakeContract.getRealTimePoints(user),0);
         uint256 currentTime = block.timestamp;
         vm.warp(currentTime + 3600);
-        assertEq(stakeContract.getRealTimePoints(user),1);
+        assertEq(stakeContract.getRealTimePoints(user),10**8);
         assertEq(stakeContract.getPoints(user),0);
     }
 
-    function testFailCheckPoint() public {
+    function testLessOneHourCheckPoint() public {
         address user = address(this);
         testStake();
         assertEq(stakeContract.getRealTimePoints(user),0);
         uint256 currentTime = block.timestamp;
         vm.warp(currentTime + 3500);
-        assertEq(stakeContract.getRealTimePoints(user),1);
+        assertEq(stakeContract.getRealTimePoints(user),97222222);
     }
 
 }
