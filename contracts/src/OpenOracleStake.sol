@@ -56,7 +56,7 @@ contract OpenOracleStake is OwnableUpgradeable {
 
     function updatePoint(IERC20Metadata tokenContract, uint256 amount, bool isStake) private{
         address token = address(tokenContract);
-        points[msg.sender] += (totalStake[msg.sender] * PER_REWARD * (block.timestamp - lastUpdateTime[msg.sender]) / SECONDS_PER_HOUR);
+        points[msg.sender] += _calcPoints(msg.sender);
         lastUpdateTime[msg.sender] = block.timestamp;
         if(totalStake[msg.sender] > 0){
             totalStake[msg.sender] -= (tokenStake[msg.sender][token] * tokenConfig[token] / 10 ** tokenContract.decimals());
@@ -76,6 +76,10 @@ contract OpenOracleStake is OwnableUpgradeable {
      * @dev Returns the amount of points a user has earned and the current time.
      */
     function getRealTimePoints(address user) external view returns(uint256){
-        return (points[user] + (totalStake[user] * PER_REWARD * (block.timestamp - lastUpdateTime[user]) / SECONDS_PER_HOUR)) / BASE_FRACTION;
+        return (points[user] + _calcPoints(user)) / BASE_FRACTION;
+    }
+
+    function _calcPoints(address user) private view returns(uint256){
+        return totalStake[user] * PER_REWARD * (block.timestamp - lastUpdateTime[user]) / SECONDS_PER_HOUR;
     }
 }
