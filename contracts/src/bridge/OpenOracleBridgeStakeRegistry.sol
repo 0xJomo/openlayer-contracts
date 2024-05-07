@@ -42,6 +42,11 @@ contract OpenOracleBridgeStakeRegistry is OpenOracleBridgeStakeRegistryStorage, 
         _transferOwnership(initialOwner);
     }
 
+    modifier quorumExists(uint8 quorumNumber) {
+        require(_quorumExists(quorumNumber), "StakeRegistry.quorumExists: quorum does not exist");
+        _;
+    }
+
     /*******************************************************************************
                       EXTERNAL FUNCTIONS - REGISTRY COORDINATOR
     *******************************************************************************/
@@ -118,7 +123,9 @@ contract OpenOracleBridgeStakeRegistry is OpenOracleBridgeStakeRegistryStorage, 
     function addStrategies(
         uint8 quorumNumber, 
         StrategyParams[] memory _strategyParams
-    ) public virtual {}
+    ) public virtual onlyOwner quorumExists(quorumNumber) {
+        _addStrategyParams(quorumNumber, _strategyParams);
+    }
 
     /**
      * @notice Remove strategies and their associated weights from the quorum's considered strategies
@@ -189,6 +196,46 @@ contract OpenOracleBridgeStakeRegistry is OpenOracleBridgeStakeRegistryStorage, 
     /*******************************************************************************
                             INTERNAL FUNCTIONS
     *******************************************************************************/
+
+    /** 
+     * @notice Adds `strategyParams` to the `quorumNumber`-th quorum.
+     * @dev Checks to make sure that the *same* strategy cannot be added multiple times (checks against both against existing and new strategies).
+     * @dev This function has no check to make sure that the strategies for a single quorum have the same underlying asset. This is a conscious choice,
+     * since a middleware may want, e.g., a stablecoin quorum that accepts USDC, USDT, DAI, etc. as underlying assets and trades them as "equivalent".
+     */
+    function _addStrategyParams(
+        uint8 quorumNumber,
+        StrategyParams[] memory _strategyParams
+    ) internal {
+        require(_strategyParams.length > 0, "StakeRegistry._addStrategyParams: no strategies provided");
+        uint256 numStratsToAdd = _strategyParams.length;
+        uint256 numStratsExisting = strategyParams[quorumNumber].length;
+        require(
+            numStratsExisting + numStratsToAdd <= MAX_WEIGHING_FUNCTION_LENGTH,
+            "StakeRegistry._addStrategyParams: exceed MAX_WEIGHING_FUNCTION_LENGTH"
+        );
+        for (uint256 i = 0; i < numStratsToAdd; i++) {
+            // fairly gas-expensive internal loop to make sure that the *same* strategy cannot be added multiple times
+            for (uint256 j = 0; j < (numStratsExisting + i); j++) {
+                require(
+                    strategyParams[quorumNumber][j].strategy != _strategyParams[i].strategy,
+                    "StakeRegistry._addStrategyParams: cannot add same strategy 2x"
+                );
+            }
+            require(
+                _strategyParams[i].multiplier > 0,
+                "StakeRegistry._addStrategyParams: cannot add strategy with zero weight"
+            );
+            strategyParams[quorumNumber].push(_strategyParams[i]);
+            strategiesPerQuorum[quorumNumber].push(_strategyParams[i].strategy);
+            emit StrategyAddedToQuorum(quorumNumber, _strategyParams[i].strategy);
+            emit StrategyMultiplierUpdated(
+                quorumNumber,
+                _strategyParams[i].strategy,
+                _strategyParams[i].multiplier
+            );
+        }
+    }
 
      /**
      * @notice Records that `operatorId`'s current stake for `quorumNumber` is now `newStake`
@@ -284,8 +331,9 @@ contract OpenOracleBridgeStakeRegistry is OpenOracleBridgeStakeRegistryStorage, 
     }
 
     /// @notice Returns `true` if the quorum has been initialized
-    function _quorumExists(uint8 quorumNumber) internal view returns (bool) {}
-
+    function _quorumExists(uint8 quorumNumber) internal view returns (bool) {
+        return _totalStakeHistory[quorumNumber].length != 0;
+    }
     /*******************************************************************************
                             VIEW FUNCTIONS
     *******************************************************************************/
@@ -303,8 +351,9 @@ contract OpenOracleBridgeStakeRegistry is OpenOracleBridgeStakeRegistryStorage, 
     }
 
     /// @notice Returns the length of the dynamic array stored in `strategyParams[quorumNumber]`.
-    function strategyParamsLength(uint8 quorumNumber) public view returns (uint256) {}
-
+    function strategyParamsLength(uint8 quorumNumber) public view returns (uint256) {
+        return strategyParams[quorumNumber].length;
+    }
     /// @notice Returns the strategy and weight multiplier for the `index`'th strategy in the quorum `quorumNumber`
     function strategyParamsByIndex(
         uint8 quorumNumber, 
