@@ -1,0 +1,10 @@
+{
+  "addresses": {
+    "openOracleStake": "0x40a42Baf86Fc821f972Ad2aC878729063CeEF403",
+    "openOracleStakeImplementation": "0x4bf010f1b9beDA5450a8dD702ED602A104ff65EE"
+  },
+  "chainInfo": {
+    "chainId": 31337,
+    "deploymentBlock": 89
+  }
+}
