@@ -109,6 +109,21 @@ contract OpenOracleBridgeStakeRegistry is OpenOracleBridgeStakeRegistryStorage, 
         StrategyParams[] memory _strategyParams
     ) public virtual {}
 
+    function initializeQuorum(
+        uint8 quorumNumber,
+        StrategyParams[] memory _strategyParams
+    ) public virtual onlyOwner {
+        require(!_quorumExists(quorumNumber), "StakeRegistry.initializeQuorum: quorum already exists");
+        _addStrategyParams(quorumNumber, _strategyParams);
+
+        _totalStakeHistory[quorumNumber].push(StakeUpdate({
+            updateBlockNumber: uint32(block.number),
+            nextUpdateBlockNumber: 0,
+            stake: 0
+        }));
+        emit QuorumTotalStakeUpdate(quorumNumber, 0);
+    }
+
     function setMinimumStakeForQuorum(
         uint8 quorumNumber, 
         uint96 minimumStake
