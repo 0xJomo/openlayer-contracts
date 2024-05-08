@@ -22,6 +22,19 @@ contract OpenOracleStake is OwnableUpgradeable {
     // user => points
     mapping(address => uint256) private points;
 
+    // user => boost (1 > BASE_FRACTION)
+    mapping(address => uint256) public boosts;
+
+    event Stake(address indexed user, address indexed token, uint256 amount, uint256 totalPoints);
+
+    event UnStake(address indexed user, address indexed token, uint256 amount, uint256 totalPoints);
+
+    event DropPoints(address indexed user, uint256 points);
+
+    event AddToken(address indexed token, uint256 fraction);
+
+    event AdjustBoost(address indexed user, uint256 boost);
+
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
@@ -31,10 +44,26 @@ contract OpenOracleStake is OwnableUpgradeable {
         __Ownable_init();
     }
 
+    function dropPoints(address user, uint256 _points) external onlyOwner{
+        require(_points > 0, "Points must be greater than 0");
+        require(user != address(0), "User cannot be 0 address");
+        points[user] += (_points * BASE_FRACTION);
+        emit DropPoints(user, _points);
+    }
+
+    function adjustBoost(address user, uint256 boost) external onlyOwner{
+        // The precision of boost is BASE_FRACTION
+        require(boost > 0, "Boost must be greater than 0");
+        require(user != address(0), "User cannot be 0 address");
+        boosts[user] = boost;
+        emit AdjustBoost(user, boost);
+    }
+
     function addToken(address token, uint256 fraction) external onlyOwner{
         require(fraction > 0, "Fraction must be greater than 0");
         require(tokenConfig[token] <= 0, "Token is already in the list");
         tokenConfig[token] = fraction;
+        emit AddToken(token, fraction);
     }
 
     function stake(address token, uint256 amount) external {
@@ -43,6 +72,7 @@ contract OpenOracleStake is OwnableUpgradeable {
         IERC20Metadata tokenContract = IERC20Metadata(token);
         tokenContract.transferFrom(msg.sender, address(this), amount);
         updatePoint(tokenContract, amount, true);
+        emit Stake(msg.sender, token, amount, points[msg.sender]);
     }
 
     function unStake(address token, uint256 amount) external {
@@ -52,6 +82,7 @@ contract OpenOracleStake is OwnableUpgradeable {
         IERC20Metadata tokenContract = IERC20Metadata(token);
         updatePoint(tokenContract, amount, false);
         tokenContract.transfer(msg.sender, amount);
+        emit UnStake(msg.sender, token, amount, points[msg.sender]);
     }
 
     function updatePoint(IERC20Metadata tokenContract, uint256 amount, bool isStake) private{
@@ -80,6 +111,8 @@ contract OpenOracleStake is OwnableUpgradeable {
     }
 
     function _calcPoints(address user) private view returns(uint256){
-        return totalStake[user] * PER_REWARD * (block.timestamp - lastUpdateTime[user]) / SECONDS_PER_HOUR;
+        bool isBoost = boosts[user] > 0;
+        uint256 _points = totalStake[user] * PER_REWARD * (block.timestamp - lastUpdateTime[user]) / SECONDS_PER_HOUR;
+        return isBoost ? (_points * boosts[user] / BASE_FRACTION) : _points;
     }
 }

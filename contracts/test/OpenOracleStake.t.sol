@@ -10,6 +10,7 @@ contract OpenOracleStakeTest is Test {
 
     OpenOracleStake public stakeContract;
     ERC20Mock2 public token;
+    event DropPoints(address indexed user, uint256 points);
 
     function setUp() public {
         token = new ERC20Mock2("ERC20Mock2","E20");
@@ -17,6 +18,58 @@ contract OpenOracleStakeTest is Test {
         ProxyAdmin proxyAdmin = new ProxyAdmin();
         TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(address(stakeContractImpl),address(proxyAdmin), abi.encodeWithSelector(stakeContractImpl.initialize.selector));
         stakeContract = OpenOracleStake(address(proxy));
+    }
+
+    function testDropPoints() public {
+        address user = address(this);
+        vm.expectEmit(true,false,false,true,address(stakeContract));
+
+        // We emit the event we expect to see.
+        emit DropPoints(user, 10**8);
+        // drop one point
+        stakeContract.dropPoints(user, 10**8);
+        assertEq(stakeContract.getPoints(user), 10**8);
+
+
+    }
+
+    function testFailDropPointsZero() public {
+        address user = address(this);
+        // drop one point
+        stakeContract.dropPoints(user, 0);
+    }
+
+    function testFailDropPointsUserNull() public {
+        address user = address(this);
+        // drop one point
+        stakeContract.dropPoints(address(0), 10**8);
+    }
+
+    function testFailDropPointsNotOwner() public {
+        address user = address(this);
+        // drop one point
+        vm.startPrank(address(0));
+        stakeContract.dropPoints(address(0), 10**8);
+        vm.stopPrank();
+    }
+
+    function testAdjustBoost() public {
+        stakeContract.adjustBoost(address(this), 1000000);
+        assertEq(stakeContract.boosts(address(this)), 1000000);
+    }
+
+    function testFailAdjustBoostNotOwner() public {
+        vm.startPrank(address(0));
+        stakeContract.adjustBoost(address(this), 1000000);
+        vm.stopPrank();
+    }
+
+    function testFailAdjustBoostZero() public {
+        stakeContract.adjustBoost(address(this), 0);
+    }
+
+    function testFailAdjustBoostUserNull() public {
+        stakeContract.adjustBoost(address(0), 1000000);
     }
 
     function testAddToken() public {
