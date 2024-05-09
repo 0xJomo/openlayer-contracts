@@ -1,18 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
-import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
-
-import "@eigenlayer/contracts/permissions/PauserRegistry.sol";
-import "@eigenlayer/test/mocks/EmptyContract.sol";
-
-import {BLSApkRegistry} from "@eigenlayer-middleware/src/BLSApkRegistry.sol";
-import {StakeRegistry} from "@eigenlayer-middleware/src/StakeRegistry.sol";
-import "@eigenlayer-middleware/src/OperatorStateRetriever.sol";
-
-import {OpenOracleTaskManager} from "../src/OpenOracleTaskManager.sol";
 import {IOpenOracleTaskManager} from "../src/IOpenOracleTaskManager.sol";
-import {OpenOraclePriceFeed} from "../src/OpenOraclePriceFeed.sol";
 import {OpenOracleServiceManager} from "../src/OpenOracleServiceManager.sol";
 
 
@@ -30,15 +19,24 @@ contract OpenOracleTaskManagerRegistry is Script, Utils {
     OpenOracleServiceManager public openOracleServiceManager;
 
     function run() external {
-        // Eigenlayer contracts
-        string memory openOracleBridgeeployedContracts = readOutput(
+        string memory openOracleTaskManagerdeployedContracts = readOutput(
+            "open_oracle_avs_task_manager_deployment_output"
+        );
+        IOpenOracleTaskManager openOracleTaskManager = IOpenOracleTaskManager(
+            stdJson.readAddress(
+                openOracleTaskManagerdeployedContracts,
+                ".addresses.openOracleTaskManager"
+            )
+        );
+        string memory openOracleBAvsDeployedContracts = readOutput(
             "open_oracle_avs_deployment_output"
         );
         openOracleServiceManager = OpenOracleServiceManager(
             stdJson.readAddress(
-                openOracleBridgeeployedContracts,
+                openOracleBAvsDeployedContracts,
                 ".addresses.openOracleServiceManager"
             )
         );
+        openOracleServiceManager.addTaskManager("sepolia", address(openOracleTaskManager));
     }
 }
