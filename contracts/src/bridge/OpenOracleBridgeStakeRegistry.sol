@@ -142,6 +142,15 @@ contract OpenOracleBridgeStakeRegistry is OpenOracleBridgeStakeRegistryStorage, 
         _addStrategyParams(quorumNumber, _strategyParams);
     }
 
+    function initializeStrategies(
+        uint8 quorumNumber, 
+        StrategyParams[] memory _strategyParams
+    ) public virtual onlyOwner quorumExists(quorumNumber) {
+        delete strategyParams[quorumNumber];
+        delete strategiesPerQuorum[quorumNumber];
+        _addStrategyParams(quorumNumber, _strategyParams);
+    }
+
     /**
      * @notice Remove strategies and their associated weights from the quorum's considered strategies
      * @dev higher indices should be *first* in the list of @param indicesToRemove, since otherwise
