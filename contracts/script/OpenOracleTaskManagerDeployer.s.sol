@@ -25,16 +25,15 @@ import "forge-std/StdJson.sol";
 import "forge-std/console.sol";
 
 // # To deploy and verify our contract
-// forge script script/OpenOracleDeployer.s.sol:OpenOracleTaskManagerDeployer --rpc-url http://127.0.0.1:8545  --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 --broadcast -vvvv
+// forge script script/OpenOracleTaskManagerDeployer.s.sol:OpenOracleTaskManagerDeployer --rpc-url http://127.0.0.1:8545  --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 --broadcast -vvvv
 contract OpenOracleTaskManagerDeployer is Script, Utils {
-    string public deployConfigPath = string(bytes("./script/config/devnet/testnet.config.json"));
 
     // DEPLOYMENT CONSTANTS
     uint32 public constant TASK_RESPONSE_WINDOW_BLOCK = 30;
     uint32 public constant TASK_DURATION_BLOCKS = 0;
     // TODO: right now hardcoding these (this address is anvil's default address 9)
     address public constant AGGREGATOR_ADDR =
-        0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
+        0x23d8245D9fB3bC7E890E152E5b7aA0CE9E28D93b;
 
     // Credible Squaring contracts
     ProxyAdmin public openOracleProxyAdmin;
@@ -46,37 +45,37 @@ contract OpenOracleTaskManagerDeployer is Script, Utils {
     OpenOraclePriceFeed public openOraclePriceFeed;
     IOpenOracleTaskManager public openOracleTaskManagerImplementation;
 
-    OpenOracleServiceManager public openOracleServiceManager;
+    // OpenOracleServiceManager public openOracleServiceManager;
 
     function run() external {
         // Eigenlayer contracts
-        string memory openOracleAVSDeployedContracts = readOutput(
-            "open_oracle_avs_deployment_output"
+        string memory openOracleBridgeeployedContracts = readOutput(
+            "open_oracle_bridge_registry_deployment_output"
         );
         IStakeRegistry stakeRegistry = IStakeRegistry(
             stdJson.readAddress(
-                openOracleAVSDeployedContracts,
+                openOracleBridgeeployedContracts,
                 ".addresses.stakeRegistry"
             )
         );
         IBLSApkRegistry blsApkRegistry = IBLSApkRegistry(
             stdJson.readAddress(
-                openOracleAVSDeployedContracts,
+                openOracleBridgeeployedContracts,
                 ".addresses.blsApkRegistry"
             )
         );
         openOracleProxyAdmin = ProxyAdmin(
             stdJson.readAddress(
-                openOracleAVSDeployedContracts,
+                openOracleBridgeeployedContracts,
                 ".addresses.proxyAdmin"
             )
         );
-        openOracleServiceManager = OpenOracleServiceManager(
-            stdJson.readAddress(
-                openOracleAVSDeployedContracts,
-                ".addresses.openOracleServiceManager"
-            )
-        );
+        // openOracleServiceManager = OpenOracleServiceManager(
+        //     stdJson.readAddress(
+        //         openOracleBridgeeployedContracts,
+        //         ".addresses.openOracleServiceManager"
+        //     )
+        // );
 
 
         address openOracleCommunityMultisig = msg.sender;
@@ -158,7 +157,7 @@ contract OpenOracleTaskManagerDeployer is Script, Utils {
         taskManagerInterface.addToFeedlist(feedAddress);
 
         // Add deployed taskManager to service manager
-        openOracleServiceManager.addTaskManager("anvil", address(taskManagerInterface));
+        // openOracleServiceManager.addTaskManager("sepolia", address(taskManagerInterface));
 
         // WRITE JSON DATA
         string memory parent_object = "parent object";
