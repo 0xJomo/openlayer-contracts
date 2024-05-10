@@ -11,16 +11,11 @@ import "@eigenlayer-middleware/src/ServiceManagerBase.sol";
 contract OpenOracleServiceManager is ServiceManagerBase {
     using BytesLib for bytes;
 
-<<<<<<< HEAD
     event OperatorAddedToRegistryWhitelist(address operator);
 
     event OperatorRemovedFromRegistryWhitelist(address operator);
 
-    IOpenOracleTaskManager public immutable openOracleTaskManager;
-
     mapping(address => bool) public operatorIsWhitelistedForRegister;
-=======
->>>>>>> Update serviceManager
     struct TaskManagerEntry {
         string chainName;
         address taskManagerAddress;
@@ -31,13 +26,16 @@ contract OpenOracleServiceManager is ServiceManagerBase {
     mapping(uint256 => TaskManagerEntry) public taskManagers;
     uint256 public taskManagerCount;
 
-<<<<<<< HEAD
-    /// @notice when applied to a function, ensures that the function is only callable by the `registryCoordinator`.
+    // @notice when applied to a function, ensures that the function is only callable by the `registryCoordinator`.
     modifier onlyOpenOracleTaskManager() {
-        require(
-            msg.sender == address(openOracleTaskManager),
-            "onlyOpenOracleTaskManager: not from open oracle task manager"
-        );
+        bool isAuthorized = false;
+        for (uint256 i = 1; i <= taskManagerCount; i++) {
+            if (taskManagers[i].taskManagerAddress == msg.sender && taskManagers[i].isActive) {
+                isAuthorized = true;
+                break;
+            }
+        }
+        require(isAuthorized, "Caller is not an active task manager");
         _;
     }
 
@@ -49,8 +47,6 @@ contract OpenOracleServiceManager is ServiceManagerBase {
         _;
     }
 
-=======
->>>>>>> Update serviceManager
     constructor(
         IAVSDirectory _avsDirectory,
         IRegistryCoordinator _registryCoordinator,
@@ -88,16 +84,15 @@ contract OpenOracleServiceManager is ServiceManagerBase {
     /// @notice Emitted when a Task Manager is removed.
     /// @param id The identifier of the removed Task Manager.
     event TaskManagerRemoved(uint256 id);
-<<<<<<< HEAD
 
     /// @notice Called in the event of challenge resolution, in order to forward a call to the Slasher, which 'freezes' the `operator`.
     /// @dev The Slasher contract is under active development and its interface expected to change.
     ///      We recommend writing slashing logic without integrating with the Slasher at this point in time.
-    function freezeOperator(
-        address operatorAddr
-    ) external onlyOpenOracleTaskManager {
-        // slasher.freezeOperator(operatorAddr);
-    }
+    // function freezeOperator(
+    //     address operatorAddr
+    // ) external onlyOpenOracleTaskManager {
+    //     // slasher.freezeOperator(operatorAddr);
+    // }
 
     function registerOperatorToAVS(
         address operator,
@@ -150,6 +145,4 @@ contract OpenOracleServiceManager is ServiceManagerBase {
             }
         }
     }
-=======
->>>>>>> Update serviceManager
 }
