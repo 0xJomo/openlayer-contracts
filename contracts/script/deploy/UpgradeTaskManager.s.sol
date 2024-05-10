@@ -3,10 +3,10 @@ pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
-import "@eigenlayer-middleware/src/RegistryCoordinator.sol" as regcoord;
 import "@eigenlayer/contracts/permissions/PauserRegistry.sol";
 
 import {OpenOracleTaskManager, IOpenOracleTaskManager} from "../../src/OpenOracleTaskManager.sol";
+import {IBLSApkRegistry, IStakeRegistry} from "@eigenlayer-middleware/src/RegistryCoordinator.sol";
 
 import {Utils} from "../utils/Utils.sol";
 
@@ -40,10 +40,16 @@ contract UpgradeTaskManager is Script, Utils {
                 ".addresses.openOracleTaskManager"
             )
         );
-        regcoord.RegistryCoordinator registryCoordinator = regcoord.RegistryCoordinator(
+        IStakeRegistry stakeRegistry = IStakeRegistry(
             stdJson.readAddress(
                 openOracleDeployedContracts,
-                ".addresses.registryCoordinator"
+                ".addresses.stakeRegistry"
+            )
+        );
+        IBLSApkRegistry blsApkRegistry = IBLSApkRegistry(
+            stdJson.readAddress(
+                openOracleDeployedContracts,
+                ".addresses.blsApkRegistry"
             )
         );
         ProxyAdmin openOracleProxyAdmin = ProxyAdmin(
@@ -66,7 +72,8 @@ contract UpgradeTaskManager is Script, Utils {
 
         _upgradeOpenOracleContracts(
             openOracleTaskManager,
-            registryCoordinator,
+            stakeRegistry,
+            blsApkRegistry,
             openOracleProxyAdmin,
             openOraclePauserReg,
             openOracleCommunityMultisig,
@@ -77,7 +84,8 @@ contract UpgradeTaskManager is Script, Utils {
 
     function _upgradeOpenOracleContracts(
         OpenOracleTaskManager openOracleTaskManager,
-        regcoord.RegistryCoordinator registryCoordinator,
+        IStakeRegistry stakeRegistry,
+        IBLSApkRegistry blsApkRegistry,
         ProxyAdmin openOracleProxyAdmin,
         PauserRegistry openOraclePauserReg,
         address openOracleCommunityMultisig,
@@ -90,7 +98,8 @@ contract UpgradeTaskManager is Script, Utils {
         DeployParams memory deployParams = _parseDeployParams(config_data);
 
         openOracleTaskManagerImplementation = new OpenOracleTaskManager(
-            registryCoordinator,
+            stakeRegistry,
+            blsApkRegistry,
             deployParams.taskResponseWindowBlock
         );
 

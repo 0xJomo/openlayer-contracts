@@ -63,7 +63,7 @@ contract OpenOraclePriceFeedDeployer is Script, Utils {
         string memory deployed_addresses = "addresses";
 
         for (uint8 i = taskTypeLower; i <= taskTypeUpper; i++) {
-            OpenOraclePriceFeed openOraclePriceFeed = new OpenOraclePriceFeed(openOracleTaskManager, i, responderThreshold, stakeThreshold);
+            OpenOraclePriceFeed openOraclePriceFeed = new OpenOraclePriceFeed(openOracleTaskManager);
             address feedAddress = address(openOraclePriceFeed); // Specify the address you want to add
             openOracleTaskManager.addToFeedlist(feedAddress);
             

@@ -152,7 +152,7 @@ contract OpenOracleTaskManagerDeployer is Script, Utils {
 
         IOpenOracleTaskManager taskManagerInterface = IOpenOracleTaskManager(address(openOracleTaskManager));
 
-        openOraclePriceFeed = new OpenOraclePriceFeed(openOracleTaskManager, 4, 1, 0);
+        openOraclePriceFeed = new OpenOraclePriceFeed(openOracleTaskManager);
         address feedAddress = address(openOraclePriceFeed);
         taskManagerInterface.addToFeedlist(feedAddress);
 
