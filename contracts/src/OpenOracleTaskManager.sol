@@ -169,7 +169,7 @@ contract OpenOracleTaskManager is
             bytes32 ethSignedMessageHash = messageHash.toEthSignedMessageHash();
 
             require(
-                ethSignedMessageHash.recover(responses[i].signature) == responses[i].operator,
+                ethSignedMessageHash.recover(responses[i].signature) == stakeRegistry.getOperatorSignAddress(responses[i].operator),
                 "Invalid signature or operator address"
             );
 
