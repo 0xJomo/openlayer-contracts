@@ -1,0 +1,13 @@
+{
+  "addresses": {
+    "blsApkRegistry": "0x1A8F6D64ad4318E6D6DEeF8C09872BAC3D565ec5",
+    "blsApkRegistryImplementation": "0x59a9F98b58bBD625d7Fa014F5d586e889BfeDC6b",
+    "delegationManager": "0x80c5fB5eF2Afe0289d1270477252FfFEa651b9a5",
+    "delegationManagerImplementation": "0x22A0B6c8b6Edef3342037581eCD472b6234D56DA",
+    "proxyAdmin": "0x58834dE8E51275552242107B88EaCc3C67641ed8",
+    "registryCoordinator": "0xf579d76Aa7D6E93EAde1c13E1fBad9F96d20D355",
+    "registryCoordinatorImplementation": "0xd64F667eE283100d4EC909ECBb2ea582b639EFFE",
+    "stakeRegistry": "0xc6098C58da2A6D71a2A4542fb0d9896EaEc01A9E",
+    "stakeRegistryImplementation": "0x0b50fEB5eAF3461a3CCDA3474Bf8de34CdF86B90"
+  }
+}

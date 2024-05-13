@@ -18,6 +18,6 @@
   },
   "chainInfo": {
     "chainId": 31337,
-    "deploymentBlock": 15
+    "deploymentBlock": 20
   }
 }

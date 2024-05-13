@@ -270,8 +270,7 @@ contract OpenOracleAvsDeployer is Script, Utils {
         openOracleServiceManagerImplementation = new OpenOracleServiceManager(
             avsDirectory,
             registryCoordinator,
-            stakeRegistry,
-            openOracleTaskManager
+            stakeRegistry
         );
         // Third, upgrade the proxy contracts to use the correct implementation contracts and initialize them.
         openOracleProxyAdmin.upgradeAndCall(
@@ -286,7 +285,8 @@ contract OpenOracleAvsDeployer is Script, Utils {
         );
 
         openOracleTaskManagerImplementation = new OpenOracleTaskManager(
-            registryCoordinator,
+            stakeRegistry,
+            blsApkRegistry,
             deployParams.taskResponseWindowBlock
         );
 
