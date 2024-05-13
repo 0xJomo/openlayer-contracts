@@ -28,4 +28,12 @@ for contract in $avs_service_contracts; do
     create_binding . $contract ./bindings
 done
 
+EIGENLAYER_MIDDLEWARE_PATH=$script_path/lib/eigenlayer-middleware
+cd $EIGENLAYER_MIDDLEWARE_PATH
+
+avs_contracts="RegistryCoordinator"
+for contract in $avs_contracts; do
+    create_binding . $contract ./bindings
+done
+
 create_binding . ERC20Mock ./bindings

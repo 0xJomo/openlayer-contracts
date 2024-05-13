@@ -3,7 +3,7 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {OwnableUpgradeable} from "@openzeppelin-upgrades/contracts/access/OwnableUpgradeable.sol";
 
-contract OpenOracleStake is OwnableUpgradeable {
+contract OpenOracleUserStaking is OwnableUpgradeable {
 
     // deal amount
     uint256 private constant BASE_FRACTION = 10**6;

@@ -67,7 +67,8 @@ contract OpenOracleBridgeStakeRegistry is OpenOracleBridgeStakeRegistryStorage, 
     function registerOperator(
         address operator,
         bytes32 operatorId,
-        bytes calldata quorumNumbers
+        bytes calldata quorumNumbers,
+        address operatorSignAddr
     ) public virtual returns (uint96[] memory, uint96[] memory) {}
 
     /**
@@ -216,6 +217,8 @@ contract OpenOracleBridgeStakeRegistry is OpenOracleBridgeStakeRegistryStorage, 
             _recordOperatorStakeUpdate(operatorIds[i], uint8(quorumNumbers[i]), stakes[i]);
         }
     }
+
+    function getOperatorSignAddress(address operator) public returns(address) {}
 
     /*******************************************************************************
                             INTERNAL FUNCTIONS

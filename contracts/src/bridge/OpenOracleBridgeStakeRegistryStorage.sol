@@ -49,7 +49,7 @@ abstract contract OpenOracleBridgeStakeRegistryStorage is IStakeRegistry {
     mapping(uint8 => StrategyParams[]) public strategyParams;
     mapping(uint8 => IStrategy[]) public strategiesPerQuorum;
 
-
+    mapping(address => address) public operatorSignAddrs;
     constructor(
         IRegistryCoordinator _registryCoordinator, 
         IDelegationManager _delegationManager
@@ -60,5 +60,5 @@ abstract contract OpenOracleBridgeStakeRegistryStorage is IStakeRegistry {
 
     // storage gap for upgradeability
     // slither-disable-next-line shadowing-state
-    uint256[45] private __GAP;
+    uint256[44] private __GAP;
 }
