@@ -279,8 +279,7 @@ contract OpenOracleHoleskyDeployer is Script, Utils {
         openOracleServiceManagerImplementation = new OpenOracleServiceManager(
             avsDirectory,
             registryCoordinator,
-            stakeRegistry,
-            openOracleTaskManager
+            stakeRegistry
         );
         // Third, upgrade the proxy contracts to use the correct implementation contracts and initialize them.
         openOracleProxyAdmin.upgradeAndCall(
@@ -295,7 +294,8 @@ contract OpenOracleHoleskyDeployer is Script, Utils {
         );
 
         openOracleTaskManagerImplementation = new OpenOracleTaskManager(
-            registryCoordinator,
+            stakeRegistry,
+            blsApkRegistry,
             TASK_RESPONSE_WINDOW_BLOCK
         );
 
@@ -312,6 +312,8 @@ contract OpenOracleHoleskyDeployer is Script, Utils {
                 AGGREGATOR_ADDR
             )
         );
+
+        openOracleServiceManager.addTaskManager("holesky", address(openOracleTaskManager));
 
         // WRITE JSON DATA
         string memory parent_object = "parent object";

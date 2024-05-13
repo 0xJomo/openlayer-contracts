@@ -77,8 +77,7 @@ contract OpenOracleHoleskyServiceManagerUpgrader is Script, Utils {
         openOracleServiceManagerImplementation = new OpenOracleServiceManager(
             avsDirectory,
             registryCoordinator,
-            stakeRegistry,
-            openOracleTaskManager
+            stakeRegistry
         );
 
         // Upgrade the proxy contracts to use the correct implementation contracts and initialize them.

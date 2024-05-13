@@ -296,8 +296,7 @@ contract OpenOracleDeployer is Script, Utils {
         openOracleServiceManagerImplementation = new OpenOracleServiceManager(
             avsDirectory,
             registryCoordinator,
-            stakeRegistry,
-            openOracleTaskManager
+            stakeRegistry
         );
         // Third, upgrade the proxy contracts to use the correct implementation contracts and initialize them.
         openOracleProxyAdmin.upgradeAndCall(
@@ -316,7 +315,8 @@ contract OpenOracleDeployer is Script, Utils {
         openOracleServiceManager.addOperatorToRegistryWhitelist(whitelist);
 
         openOracleTaskManagerImplementation = new OpenOracleTaskManager(
-            registryCoordinator,
+            stakeRegistry,
+            blsApkRegistry,
             TASK_RESPONSE_WINDOW_BLOCK
         );
 
@@ -350,6 +350,8 @@ contract OpenOracleDeployer is Script, Utils {
         IOpenOracleTaskManager taskManagerInterface = IOpenOracleTaskManager(address(openOracleTaskManager));
         address feedAddress = address(openOraclePriceFeed); // Specify the address you want to add
         taskManagerInterface.addToFeedlist(feedAddress);
+
+        openOracleServiceManager.addTaskManager("anvil", address(openOracleTaskManager));
 
         // WRITE JSON DATA
         string memory parent_object = "parent object";

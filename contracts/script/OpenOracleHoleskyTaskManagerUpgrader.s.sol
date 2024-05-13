@@ -3,11 +3,13 @@ pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
-import "@eigenlayer-middleware/src/RegistryCoordinator.sol" as regcoord;
 import "@eigenlayer/contracts/permissions/PauserRegistry.sol";
 
 import {OpenOracleTaskManager, IOpenOracleTaskManager} from "../src/OpenOracleTaskManager.sol";
-
+import {IBLSApkRegistry} from "@eigenlayer-middleware/src/interfaces/IBLSApkRegistry.sol";
+import {IStakeRegistry} from "@eigenlayer-middleware/src/interfaces/IStakeRegistry.sol";
+import {BLSApkRegistry} from "@eigenlayer-middleware/src/BLSApkRegistry.sol";
+import {StakeRegistry} from "@eigenlayer-middleware/src/StakeRegistry.sol";
 import {Utils} from "./utils/Utils.sol";
 
 import "forge-std/Test.sol";
@@ -37,10 +39,16 @@ contract OpenOracleHoleskyTaskManagerUpgrader is Script, Utils {
                 ".addresses.openOracleTaskManager"
             )
         );
-        regcoord.RegistryCoordinator registryCoordinator = regcoord.RegistryCoordinator(
+        IStakeRegistry stakeRegistry = StakeRegistry(
             stdJson.readAddress(
                 openOracleDeployedContracts,
-                ".addresses.registryCoordinator"
+                ".addresses.stakeRegistry"
+            )
+        );
+        IBLSApkRegistry blsApkRegistry = BLSApkRegistry(
+            stdJson.readAddress(
+                openOracleDeployedContracts,
+                ".addresses.blsApkRegistry"
             )
         );
         ProxyAdmin openOracleProxyAdmin = ProxyAdmin(
@@ -63,7 +71,8 @@ contract OpenOracleHoleskyTaskManagerUpgrader is Script, Utils {
 
         _upgradeOpenOracleContracts(
             openOracleTaskManager,
-            registryCoordinator,
+            stakeRegistry,
+            blsApkRegistry,
             openOracleProxyAdmin,
             openOraclePauserReg,
             openOracleCommunityMultisig,
@@ -74,7 +83,8 @@ contract OpenOracleHoleskyTaskManagerUpgrader is Script, Utils {
 
     function _upgradeOpenOracleContracts(
         OpenOracleTaskManager openOracleTaskManager,
-        regcoord.RegistryCoordinator registryCoordinator,
+        IStakeRegistry stakeRegistry,
+        IBLSApkRegistry blsApkRegistry,
         ProxyAdmin openOracleProxyAdmin,
         PauserRegistry openOraclePauserReg,
         address openOracleCommunityMultisig,
@@ -82,7 +92,8 @@ contract OpenOracleHoleskyTaskManagerUpgrader is Script, Utils {
     ) internal {
 
         openOracleTaskManagerImplementation = new OpenOracleTaskManager(
-            registryCoordinator,
+            stakeRegistry,
+            blsApkRegistry,
             TASK_RESPONSE_WINDOW_BLOCK
         );
 
