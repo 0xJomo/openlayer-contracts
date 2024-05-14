@@ -549,11 +549,10 @@ contract OpenOracleBridgeStakeRegistry is OpenOracleBridgeStakeRegistryStorage, 
     ) external view returns (uint32[] memory) {}
 
     function updateOperatorSignAddr(
-        address operator,
         address operatorSignAddr
-    ) external override onlyRegistryCoordinator {
-        require(operatorSignAddrs[operator] != address(0), "StakeRegistry.updateOperatorSignAddr: operator sign");
-        require(operatorSignAddrs[operator] != operatorSignAddr, "StakeRegistry.updateOperatorSignAddr: same signAddr");
-        operatorSignAddrs[operator] = operatorSignAddr;
+    ) external override {
+        require(operatorSignAddrs[msg.sender] != address(0), "StakeRegistry.updateOperatorSignAddr: operator sign");
+        require(operatorSignAddrs[msg.sender] != operatorSignAddr, "StakeRegistry.updateOperatorSignAddr: same signAddr");
+        operatorSignAddrs[msg.sender] = operatorSignAddr;
     }
 }
