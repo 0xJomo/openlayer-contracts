@@ -59,13 +59,6 @@ contract OpenOracleBridgeStakeRegistry is OpenOracleBridgeStakeRegistryStorage, 
                       EXTERNAL FUNCTIONS - REGISTRY COORDINATOR
     *******************************************************************************/
 
-    function updateOperatorSignAddr(
-        address operator,
-        address operatorSignAddr
-    ) external {}
-
-    function getOperatorSignAddress(address operator) external view returns(address) {}
-
     /**
      * @notice Registers the `operator` with `operatorId` for the specified `quorumNumbers`.
      * @param operator The address of the operator to register.
