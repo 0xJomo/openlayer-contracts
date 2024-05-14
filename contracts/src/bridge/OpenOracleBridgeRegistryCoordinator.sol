@@ -64,6 +64,13 @@ contract OpenOracleBridgeRegistryCoordinator is
                             EXTERNAL FUNCTIONS 
     *******************************************************************************/
 
+
+    function updateBLSPublicKey(IBLSApkRegistry.PubkeyRegistrationParams calldata params) external {}
+
+    function updateOperatorSignAddr(address signAddr) external {}
+
+    function getOperatorBlsKeyAndSignAddr(address operator) external view returns (OperatorBlsKeyAndSigner memory) {}
+
     /**
      * @notice Registers msg.sender as an operator for one or more quorums. If any quorum exceeds its maximum
      * operator capacity after the operator is registered, this method will fail.

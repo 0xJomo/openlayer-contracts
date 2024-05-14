@@ -51,6 +51,13 @@ contract OpenOracleBridgeStakeRegistry is OpenOracleBridgeStakeRegistryStorage, 
                       EXTERNAL FUNCTIONS - REGISTRY COORDINATOR
     *******************************************************************************/
 
+    function updateOperatorSignAddr(
+        address operator,
+        address operatorSignAddr
+    ) external {}
+
+    function getOperatorSignAddress(address operator) external view returns(address) {}
+
     /**
      * @notice Registers the `operator` with `operatorId` for the specified `quorumNumbers`.
      * @param operator The address of the operator to register.
@@ -218,7 +225,15 @@ contract OpenOracleBridgeStakeRegistry is OpenOracleBridgeStakeRegistryStorage, 
         }
     }
 
-    function getOperatorSignAddress(address operator) public returns(address) {}
+    function updateOperatorSignAddresses(
+        address[] calldata operators,
+        address[] calldata signAddresses
+    ) external onlyOwner {
+        require(operators.length == signAddresses.length, "operators and signAddresses length should match");
+        for (uint256 i = 0; i < operators.length; i++) {
+            operatorSignAddrs[operators[i]] = signAddresses[i];
+        }
+    }
 
     /*******************************************************************************
                             INTERNAL FUNCTIONS

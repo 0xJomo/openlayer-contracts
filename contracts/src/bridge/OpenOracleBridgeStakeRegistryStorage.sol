@@ -50,6 +50,7 @@ abstract contract OpenOracleBridgeStakeRegistryStorage is IStakeRegistry {
     mapping(uint8 => IStrategy[]) public strategiesPerQuorum;
 
     mapping(address => address) public operatorSignAddrs;
+
     constructor(
         IRegistryCoordinator _registryCoordinator, 
         IDelegationManager _delegationManager

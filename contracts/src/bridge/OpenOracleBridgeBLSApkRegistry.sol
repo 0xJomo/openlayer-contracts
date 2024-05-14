@@ -28,6 +28,13 @@ contract OpenOracleBridgeBLSApkRegistry is
                       EXTERNAL FUNCTIONS - REGISTRY COORDINATOR
     *******************************************************************************/
 
+    function updateBLSPublicKey(
+        address operator,
+        bytes memory quorumNumbers,
+        PubkeyRegistrationParams calldata params,
+        BN254.G1Point calldata pubkeyRegistrationMessageHash
+    ) public virtual returns (bytes32 operatorId) {}
+
     /**
      * @notice Registers the `operator`'s pubkey for the specified `quorumNumbers`.
      * @param operator The address of the operator to register.
