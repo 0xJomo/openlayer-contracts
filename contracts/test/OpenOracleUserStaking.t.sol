@@ -1,23 +1,23 @@
 pragma solidity ^0.8.9;
 
 import "forge-std/Test.sol";
-import "../src/OpenOracleStake.sol";
+import "../src/OpenOracleUserStaking.sol";
 import "../src/ERC20Mock2.sol";
 import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
-contract OpenOracleStakeTest is Test {
+contract OpenOracleUserStakingTest is Test {
 
-    OpenOracleStake public stakeContract;
+    OpenOracleUserStaking public stakeContract;
     ERC20Mock2 public token;
     event DropPoints(address indexed user, uint256 points);
 
     function setUp() public {
         token = new ERC20Mock2("ERC20Mock2","E20");
-        OpenOracleStake stakeContractImpl = new OpenOracleStake();
+        OpenOracleUserStaking stakeContractImpl = new OpenOracleUserStaking();
         ProxyAdmin proxyAdmin = new ProxyAdmin();
         TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(address(stakeContractImpl),address(proxyAdmin), abi.encodeWithSelector(stakeContractImpl.initialize.selector));
-        stakeContract = OpenOracleStake(address(proxy));
+        stakeContract = OpenOracleUserStaking(address(proxy));
     }
 
     function testDropPoints() public {

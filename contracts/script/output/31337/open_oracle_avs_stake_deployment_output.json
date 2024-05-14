@@ -1,10 +1,11 @@
 {
   "addresses": {
-    "openOracleStake": "0x40a42Baf86Fc821f972Ad2aC878729063CeEF403",
-    "openOracleStakeImplementation": "0x4bf010f1b9beDA5450a8dD702ED602A104ff65EE"
+    "openOracleUserStaking": "0xa6e99A4ED7498b3cdDCBB61a6A607a4925Faa1B7",
+    "openOracleUserStakingImplementation": "0xFD6F7A6a5c21A3f503EBaE7a473639974379c351",
+    "proxyAdmin": "0xC7f2Cf4845C6db0e1a1e91ED41Bcd0FcC1b0E141"
   },
   "chainInfo": {
     "chainId": 31337,
-    "deploymentBlock": 89
+    "deploymentBlock": 91
   }
 }
