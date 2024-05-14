@@ -36,6 +36,14 @@ contract OpenOracleBridgeStakeRegistry is OpenOracleBridgeStakeRegistryStorage, 
         _disableInitializers();
     }
 
+    modifier onlyRegistryCoordinator() {
+        require(
+            msg.sender == address(registryCoordinator),
+            "StakeRegistry.onlyRegistryCoordinator: caller is not the RegistryCoordinator"
+        );
+        _;
+    }
+
     function initialize(
         address initialOwner
     ) public initializer {
@@ -225,6 +233,9 @@ contract OpenOracleBridgeStakeRegistry is OpenOracleBridgeStakeRegistryStorage, 
         }
     }
 
+
+    function getOperatorSignAddress(address operator) view override public returns(address) {}
+
     function updateOperatorSignAddresses(
         address[] calldata operators,
         address[] calldata signAddresses
@@ -234,6 +245,7 @@ contract OpenOracleBridgeStakeRegistry is OpenOracleBridgeStakeRegistryStorage, 
             operatorSignAddrs[operators[i]] = signAddresses[i];
         }
     }
+
 
     /*******************************************************************************
                             INTERNAL FUNCTIONS
@@ -542,4 +554,13 @@ contract OpenOracleBridgeStakeRegistry is OpenOracleBridgeStakeRegistryStorage, 
         uint32 blockNumber,
         bytes calldata quorumNumbers
     ) external view returns (uint32[] memory) {}
+
+    function updateOperatorSignAddr(
+        address operator,
+        address operatorSignAddr
+    ) external override onlyRegistryCoordinator {
+        require(operatorSignAddrs[operator] != address(0), "StakeRegistry.updateOperatorSignAddr: operator sign");
+        require(operatorSignAddrs[operator] != operatorSignAddr, "StakeRegistry.updateOperatorSignAddr: same signAddr");
+        operatorSignAddrs[operator] = operatorSignAddr;
+    }
 }

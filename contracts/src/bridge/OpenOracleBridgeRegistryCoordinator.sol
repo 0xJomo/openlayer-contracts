@@ -33,6 +33,7 @@ contract OpenOracleBridgeRegistryCoordinator is
     EIP712,
     Initializable,
     OwnableUpgradeable,
+    Pausable,
     OpenOracleBridgeRegistryCoordinatorStorage,
     ISocketUpdater,
     ISignatureUtils
@@ -253,6 +254,17 @@ contract OpenOracleBridgeRegistryCoordinator is
         uint96[] totalStakes;
     }
 
+    /// @notice Get the most recent bitmap for the operator, returning an empty bitmap if
+    /// the operator is not registered.
+    function _currentOperatorBitmap(bytes32 operatorId) internal view returns (uint192) {
+        uint256 historyLength = _operatorBitmapHistory[operatorId].length;
+        if (historyLength == 0) {
+            return 0;
+        } else {
+            return _operatorBitmapHistory[operatorId][historyLength - 1].quorumBitmap;
+        }
+    }
+
     /**
      * @notice Record an update to an operator's quorum bitmap.
      * @param newBitmap is the most up-to-date set of bitmaps the operator is registered for
@@ -408,4 +420,25 @@ contract OpenOracleBridgeRegistryCoordinator is
     {}
 
     function indexRegistry() external view override returns (IIndexRegistry) {}
+
+    function updateBLSPublicKey(IBLSApkRegistry.PubkeyRegistrationParams calldata params) external override onlyWhenNotPaused(PAUSED_REGISTER_OPERATOR){
+        address operator = msg.sender;
+        bytes32 operatorId = blsApkRegistry.getOperatorId(operator);
+        require(operatorId != bytes32(0), "RegistryCoordinator.updateBLSPublicKey: operator is not registered");
+        uint192 currentBitmap = _currentOperatorBitmap(operatorId);
+        bytes memory quorumsToUpdate = BitmapUtils.bitmapToBytesArray(currentBitmap);
+        blsApkRegistry.updateBLSPublicKey(operator, quorumsToUpdate, params, pubkeyRegistrationMessageHash(operator));
+    }
+
+    function updateOperatorSignAddr(address signAddr) external override onlyWhenNotPaused(PAUSED_REGISTER_OPERATOR){
+        address operator = msg.sender;
+        require(_operatorInfo[operator].status == OperatorStatus.REGISTERED, "RegistryCoordinator.updateOperatorSignAddr: operator is not registered");
+        stakeRegistry.updateOperatorSignAddr(operator, signAddr);
+    }
+
+    function getOperatorBlsKeyAndSignAddr(address operator) external override view returns (OperatorBlsKeyAndSigner memory) {
+        (BN254.G1Point memory pubKey, bytes32 pubKeyHash) = blsApkRegistry.getRegisteredPubkey(operator);
+        address signAddr = stakeRegistry.getOperatorSignAddress(operator);
+        return OperatorBlsKeyAndSigner(pubKey, pubKeyHash, signAddr);
+    }
 }
