@@ -174,11 +174,11 @@ contract OpenOracleTaskManager is
             // Verify ECDSA signature
             bytes32 messageHash = keccak256(abi.encode(responses[i].response));
             bytes32 ethSignedMessageHash = messageHash.toEthSignedMessageHash();
-
+            address recover = ethSignedMessageHash.recover(responses[i].signature);
             require(
-                ethSignedMessageHash.recover(responses[i].signature) ==
+                recover ==
                     responses[i].operator ||
-                    ethSignedMessageHash.recover(responses[i].signature) ==
+                recover ==
                     stakeRegistry.getOperatorSignAddress(responses[i].operator),
                 "Invalid signature or operator address"
             );
