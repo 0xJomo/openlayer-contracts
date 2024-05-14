@@ -9,14 +9,14 @@ import "@eigenlayer/test/mocks/EmptyContract.sol";
 import "@eigenlayer-middleware/src/RegistryCoordinator.sol" as regcoord;
 import {IBLSApkRegistry, IStakeRegistry} from "@eigenlayer-middleware/src/RegistryCoordinator.sol";
 
-import {OpenOracleBridgeBLSApkRegistry} from "../src/bridge/OpenOracleBridgeBLSApkRegistry.sol";
-import {OpenOracleBridgeDelegationManager} from "../src/bridge/OpenOracleBridgeDelegationManager.sol";
-import {OpenOracleBridgeRegistryCoordinator} from "../src/bridge/OpenOracleBridgeRegistryCoordinator.sol";
-import {OpenOracleBridgeStakeRegistry} from "../src/bridge/OpenOracleBridgeStakeRegistry.sol";
+import {OpenOracleBridgeBLSApkRegistry} from "../../src/bridge/OpenOracleBridgeBLSApkRegistry.sol";
+import {OpenOracleBridgeDelegationManager} from "../../src/bridge/OpenOracleBridgeDelegationManager.sol";
+import {OpenOracleBridgeRegistryCoordinator} from "../../src/bridge/OpenOracleBridgeRegistryCoordinator.sol";
+import {OpenOracleBridgeStakeRegistry} from "../../src/bridge/OpenOracleBridgeStakeRegistry.sol";
 
-import "../src/ERC20Mock.sol";
+import "../../src/ERC20Mock.sol";
 
-import {Utils} from "./utils/Utils.sol";
+import {Utils} from "../utils/Utils.sol";
 
 import "forge-std/Test.sol";
 import "forge-std/Script.sol";
@@ -24,7 +24,6 @@ import "forge-std/StdJson.sol";
 import "forge-std/console.sol";
 
 // # To deploy and verify our contract
-// forge script script/OpenOracleDeployer.s.sol:OpenOracleDeployer --rpc-url http://127.0.0.1:8545  --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 --broadcast -vvvv
 contract OpenOracleBridgeDeployer is Script, Utils {
     ProxyAdmin public openOracleProxyAdmin;
 

@@ -8,16 +8,16 @@ import "@eigenlayer/test/mocks/EmptyContract.sol";
 
 import {BLSApkRegistry} from "@eigenlayer-middleware/src/BLSApkRegistry.sol";
 import {StakeRegistry} from "@eigenlayer-middleware/src/StakeRegistry.sol";
-import "@eigenlayer-middleware/src/OperatorStateRetriever.sol";
+import {IBLSApkRegistry} from "@eigenlayer-middleware/src/interfaces/IBLSApkRegistry.sol";
+import {IStakeRegistry} from "@eigenlayer-middleware/src/interfaces/IStakeRegistry.sol";
 
-import {OpenOracleTaskManager} from "../src/OpenOracleTaskManager.sol";
-import {IOpenOracleTaskManager} from "../src/IOpenOracleTaskManager.sol";
-import {OpenOraclePriceFeed} from "../src/OpenOraclePriceFeed.sol";
-import {OpenOracleServiceManager} from "../src/OpenOracleServiceManager.sol";
+import {OpenOracleTaskManager} from "../../src/OpenOracleTaskManager.sol";
+import {IOpenOracleTaskManager} from "../../src/IOpenOracleTaskManager.sol";
+import {OpenOracleServiceManager} from "../../src/OpenOracleServiceManager.sol";
 
-import "../src/ERC20Mock.sol";
+import "../../src/ERC20Mock.sol";
 
-import {Utils} from "./utils/Utils.sol";
+import {Utils} from "../utils/Utils.sol";
 
 import "forge-std/Test.sol";
 import "forge-std/Script.sol";
@@ -25,27 +25,19 @@ import "forge-std/StdJson.sol";
 import "forge-std/console.sol";
 
 // # To deploy and verify our contract
-// forge script script/OpenOracleTaskManagerDeployer.s.sol:OpenOracleTaskManagerDeployer --rpc-url http://127.0.0.1:8545  --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 --broadcast -vvvv
 contract OpenOracleTaskManagerDeployer is Script, Utils {
+    string public deployConfigPath = string.concat("./script/config/", vm.toString(block.chainid), "/config.avs.json");
 
-    // DEPLOYMENT CONSTANTS
-    uint32 public constant TASK_RESPONSE_WINDOW_BLOCK = 30;
-    uint32 public constant TASK_DURATION_BLOCKS = 0;
-    // TODO: right now hardcoding these (this address is anvil's default address 9)
-    address public constant AGGREGATOR_ADDR =
-        0x23d8245D9fB3bC7E890E152E5b7aA0CE9E28D93b;
-
-    // Credible Squaring contracts
     ProxyAdmin public openOracleProxyAdmin;
     PauserRegistry public openOraclePauserReg;
 
-    OperatorStateRetriever public operatorStateRetriever;
-
     OpenOracleTaskManager public openOracleTaskManager;
-    OpenOraclePriceFeed public openOraclePriceFeed;
     IOpenOracleTaskManager public openOracleTaskManagerImplementation;
 
-    // OpenOracleServiceManager public openOracleServiceManager;
+    struct DeployParams {
+        uint32 taskResponseWindowBlock;
+        address aggregatorAddr;
+    }
 
     function run() external {
         // Eigenlayer contracts
@@ -70,13 +62,6 @@ contract OpenOracleTaskManagerDeployer is Script, Utils {
                 ".addresses.proxyAdmin"
             )
         );
-        // openOracleServiceManager = OpenOracleServiceManager(
-        //     stdJson.readAddress(
-        //         openOracleBridgeeployedContracts,
-        //         ".addresses.openOracleServiceManager"
-        //     )
-        // );
-
 
         address openOracleCommunityMultisig = msg.sender;
         address openOraclePauser = msg.sender;
@@ -98,6 +83,12 @@ contract OpenOracleTaskManagerDeployer is Script, Utils {
         address openOracleCommunityMultisig,
         address openOraclePauser
     ) internal {
+        // READ JSON CONFIG DATA
+        string memory config_data = vm.readFile(deployConfigPath);
+        
+        // parse initalization params and permissions from config data
+        DeployParams memory deployParams = _parseDeployParams(config_data);
+
         // deploy pauser registry
         {
             address[] memory pausers = new address[](2);
@@ -127,13 +118,11 @@ contract OpenOracleTaskManagerDeployer is Script, Utils {
             )
         );
 
-        operatorStateRetriever = new OperatorStateRetriever();
-
         // Upgrade the proxy contracts to use the correct implementation contracts and initialize them.
         openOracleTaskManagerImplementation = new OpenOracleTaskManager(
             stakeRegistry,
             blsApkRegistry,
-            TASK_RESPONSE_WINDOW_BLOCK
+            deployParams.taskResponseWindowBlock
         );
 
         // Third, upgrade the proxy contracts to use the correct implementation contracts and initialize them.
@@ -146,18 +135,9 @@ contract OpenOracleTaskManagerDeployer is Script, Utils {
                 openOracleTaskManager.initialize.selector,
                 openOraclePauserReg,
                 openOracleCommunityMultisig,
-                AGGREGATOR_ADDR
+                deployParams.aggregatorAddr
             )
         );
-
-        IOpenOracleTaskManager taskManagerInterface = IOpenOracleTaskManager(address(openOracleTaskManager));
-
-        openOraclePriceFeed = new OpenOraclePriceFeed(openOracleTaskManager);
-        address feedAddress = address(openOraclePriceFeed);
-        taskManagerInterface.addToFeedlist(feedAddress);
-
-        // Add deployed taskManager to service manager
-        // openOracleServiceManager.addTaskManager("sepolia", address(taskManagerInterface));
 
         // WRITE JSON DATA
         string memory parent_object = "parent object";
@@ -173,15 +153,10 @@ contract OpenOracleTaskManagerDeployer is Script, Utils {
             "openOracleTaskManager",
             address(openOracleTaskManager)
         );
-        vm.serializeAddress(
+        string memory deployed_addresses_output = vm.serializeAddress(
             deployed_addresses,
             "openOracleTaskManagerImplementation",
             address(openOracleTaskManagerImplementation)
-        );
-        string memory deployed_addresses_output = vm.serializeAddress(
-            deployed_addresses,
-            "operatorStateRetriever",
-            address(operatorStateRetriever)
         );
 
         // serialize all the data
@@ -192,5 +167,13 @@ contract OpenOracleTaskManagerDeployer is Script, Utils {
         );
 
         writeOutput(finalJson, "open_oracle_avs_task_manager_deployment_output");
+    }
+
+    function _parseDeployParams(string memory config_data) internal pure returns (DeployParams memory deployParams) {
+        bytes memory taskResponseWindowBlockRaw = stdJson.parseRaw(config_data, ".taskResponseWindowBlock");
+        deployParams.taskResponseWindowBlock = abi.decode(taskResponseWindowBlockRaw, (uint32));
+        
+        bytes memory aggregatorAddrRaw = stdJson.parseRaw(config_data, ".aggregatorAddr");
+        deployParams.aggregatorAddr = abi.decode(aggregatorAddrRaw, (address));
     }
 }

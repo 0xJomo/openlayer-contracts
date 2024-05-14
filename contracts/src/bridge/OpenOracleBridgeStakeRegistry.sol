@@ -59,6 +59,13 @@ contract OpenOracleBridgeStakeRegistry is OpenOracleBridgeStakeRegistryStorage, 
                       EXTERNAL FUNCTIONS - REGISTRY COORDINATOR
     *******************************************************************************/
 
+    function updateOperatorSignAddr(
+        address operator,
+        address operatorSignAddr
+    ) external {}
+
+    function getOperatorSignAddress(address operator) external view returns(address) {}
+
     /**
      * @notice Registers the `operator` with `operatorId` for the specified `quorumNumbers`.
      * @param operator The address of the operator to register.
@@ -226,7 +233,19 @@ contract OpenOracleBridgeStakeRegistry is OpenOracleBridgeStakeRegistryStorage, 
         }
     }
 
+
     function getOperatorSignAddress(address operator) view override public returns(address) {}
+
+    function updateOperatorSignAddresses(
+        address[] calldata operators,
+        address[] calldata signAddresses
+    ) external onlyOwner {
+        require(operators.length == signAddresses.length, "operators and signAddresses length should match");
+        for (uint256 i = 0; i < operators.length; i++) {
+            operatorSignAddrs[operators[i]] = signAddresses[i];
+        }
+    }
+
 
     /*******************************************************************************
                             INTERNAL FUNCTIONS
@@ -494,8 +513,9 @@ contract OpenOracleBridgeStakeRegistry is OpenOracleBridgeStakeRegistryStorage, 
      * @notice Returns the stake weight from the latest entry in `_totalStakeHistory` for quorum `quorumNumber`.
      * @dev Will revert if `_totalStakeHistory[quorumNumber]` is empty.
      */
-    function getCurrentTotalStake(uint8 quorumNumber) external view returns (uint96) {}
-
+    function getCurrentTotalStake(uint8 quorumNumber) external view returns (uint96) {
+        return _totalStakeHistory[quorumNumber][_totalStakeHistory[quorumNumber].length - 1].stake;
+    }
     /**
      * @notice Returns the `index`-th entry in the dynamic array of total stake, `_totalStakeHistory` for quorum `quorumNumber`.
      * @param quorumNumber The quorum number to get the stake for.
