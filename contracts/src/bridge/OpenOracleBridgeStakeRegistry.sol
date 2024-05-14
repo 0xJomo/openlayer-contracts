@@ -501,8 +501,9 @@ contract OpenOracleBridgeStakeRegistry is OpenOracleBridgeStakeRegistryStorage, 
      * @notice Returns the stake weight from the latest entry in `_totalStakeHistory` for quorum `quorumNumber`.
      * @dev Will revert if `_totalStakeHistory[quorumNumber]` is empty.
      */
-    function getCurrentTotalStake(uint8 quorumNumber) external view returns (uint96) {}
-
+    function getCurrentTotalStake(uint8 quorumNumber) external view returns (uint96) {
+        return _totalStakeHistory[quorumNumber][_totalStakeHistory[quorumNumber].length - 1].stake;
+    }
     /**
      * @notice Returns the `index`-th entry in the dynamic array of total stake, `_totalStakeHistory` for quorum `quorumNumber`.
      * @param quorumNumber The quorum number to get the stake for.
