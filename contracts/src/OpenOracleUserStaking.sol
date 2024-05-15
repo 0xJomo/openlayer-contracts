@@ -2,6 +2,7 @@ pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
 import "./interfaces/IUserStakingHandler.sol";
 
 contract OpenOracleUserStaking is Ownable {
@@ -45,11 +46,13 @@ contract OpenOracleUserStaking is Ownable {
         tokenContract.transferFrom(msg.sender, address(this), amount);
         tokenStake[msg.sender][token] += amount;
         emit Stake(msg.sender, token, amount);
-        try userStakingHandler.afterStake(msg.sender, token, amount) {
-        } catch Error(string memory reason) {
-            // catch failing revert() and require()
-        } catch (bytes memory reason) {
-            // catch failing assert()
+        if(Address.isContract(address(userStakingHandler))){
+            try userStakingHandler.afterStake(msg.sender, token, amount) {
+            } catch Error(string memory reason) {
+                // catch failing revert() and require()
+            } catch (bytes memory reason) {
+                // catch failing assert()
+            }
         }
     }
 
@@ -61,11 +64,13 @@ contract OpenOracleUserStaking is Ownable {
         IERC20Metadata tokenContract = IERC20Metadata(token);
         tokenContract.transfer(msg.sender, amount);
         emit UnStake(msg.sender, token, amount);
-        try userStakingHandler.afterUnstake(msg.sender, token, amount) {
-        } catch Error(string memory reason) {
-            // catch failing revert() and require()
-        } catch (bytes memory reason) {
-            // catch failing assert()
+        if(Address.isContract(address(userStakingHandler))){
+            try userStakingHandler.afterUnstake(msg.sender, token, amount) {
+            } catch Error(string memory reason) {
+                // catch failing revert() and require()
+            } catch (bytes memory reason) {
+                // catch failing assert()
+            }
         }
     }
 
