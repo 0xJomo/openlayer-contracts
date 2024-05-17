@@ -13,6 +13,7 @@ import {OpenOracleBridgeBLSApkRegistry} from "../../src/bridge/OpenOracleBridgeB
 import {OpenOracleBridgeDelegationManager} from "../../src/bridge/OpenOracleBridgeDelegationManager.sol";
 import {OpenOracleBridgeRegistryCoordinator} from "../../src/bridge/OpenOracleBridgeRegistryCoordinator.sol";
 import {OpenOracleBridgeStakeRegistry} from "../../src/bridge/OpenOracleBridgeStakeRegistry.sol";
+import {OperatorStateRetriever} from "@eigenlayer-middleware/src/OperatorStateRetriever.sol";
 
 import "../../src/ERC20Mock.sol";
 
@@ -38,6 +39,9 @@ contract OpenOracleBridgeDeployer is Script, Utils {
     
     OpenOracleBridgeDelegationManager public delegationManager;
     IDelegationManager public delegationManagerImplementation;
+
+    OperatorStateRetriever public operatorStateRetriever;
+
 
     function run() external {
         address openOracleCommunityMultisig = msg.sender;
@@ -154,6 +158,10 @@ contract OpenOracleBridgeDeployer is Script, Utils {
                     openOracleCommunityMultisig
                 )
             );
+
+            operatorStateRetriever = new OperatorStateRetriever(
+            );
+
         }
 
         // WRITE JSON DATA
@@ -164,6 +172,11 @@ contract OpenOracleBridgeDeployer is Script, Utils {
             deployed_addresses,
             "proxyAdmin",
             address(openOracleProxyAdmin)
+        );
+        vm.serializeAddress(
+            deployed_addresses,
+            "operatorStateRetriever",
+            address(operatorStateRetriever)
         );
         vm.serializeAddress(
             deployed_addresses,
