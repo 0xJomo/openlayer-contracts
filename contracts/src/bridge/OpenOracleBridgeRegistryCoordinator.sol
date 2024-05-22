@@ -423,4 +423,16 @@ contract OpenOracleBridgeRegistryCoordinator is
         blsApkRegistry.updateBLSPublicKey(operator, quorumsToUpdate, params, pubkeyRegistrationMessageHash(operator));
     }
 
+    function updateOperatorSignAddr(address signAddr) external override onlyWhenNotPaused(PAUSED_REGISTER_OPERATOR){
+        address operator = msg.sender;
+        require(_operatorInfo[operator].status == OperatorStatus.REGISTERED, "RegistryCoordinator.updateOperatorSignAddr: operator is not registered");
+        stakeRegistry.updateOperatorSignAddr(operator, signAddr);
+    }
+
+    function getOperatorBlsKeyAndSignAddr(address operator) external override view returns (OperatorBlsKeyAndSigner memory) {
+        (BN254.G1Point memory pubKey, bytes32 pubKeyHash) = blsApkRegistry.getRegisteredPubkey(operator);
+        address signAddr = stakeRegistry.getOperatorSignAddress(operator);
+        return OperatorBlsKeyAndSigner(pubKey, pubKeyHash, signAddr);
+    }
+
 }

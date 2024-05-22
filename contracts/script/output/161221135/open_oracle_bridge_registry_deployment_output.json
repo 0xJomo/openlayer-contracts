@@ -1,13 +1,14 @@
 {
   "addresses": {
-    "blsApkRegistry": "0x42a75e304e9C0ec679633F5eA83DFD8D9F83798a",
-    "blsApkRegistryImplementation": "0x5c9bfA6d99f294eb7A623fe4a2c2a63E2360233f",
-    "delegationManager": "0x761219ebBDEBC2F9a13d136ea74BEa1377595727",
-    "delegationManagerImplementation": "0xA3ae0CA80cCAFcBF4101A376c6AB06742653c234",
-    "proxyAdmin": "0x5092432090669464fF57fD6d2b9EB3b10D7f41B6",
-    "registryCoordinator": "0x317a9E27cBBCda2E0C3b81D385736F8487e73168",
-    "registryCoordinatorImplementation": "0x7Fe01b8F1249dB81EB6f71A710D9f4A43A9680f0",
-    "stakeRegistry": "0x4B98F395B27a06CeC8C9Fd804a1E3149c8e7dBD6",
-    "stakeRegistryImplementation": "0x244F51050E209aFcB3AEff14Fa58Ec1A7D67Ee4c"
+    "blsApkRegistry": "0xd70735F7d96F28b88aC7b0Ed6f13eEEC9bDaB665",
+    "blsApkRegistryImplementation": "0x248Dfa5f22cb7190F3E8b5B8E2e6E80bd1263a57",
+    "delegationManager": "0x2D2790A8e58faDA91Cf780c81fdFCeC7dF8443A1",
+    "delegationManagerImplementation": "0xd4c3E781f12D473063839505743E35bA78F407AA",
+    "operatorStateRetriever": "0x8B3eA00576409853B197f738d1dbb19e89813671",
+    "proxyAdmin": "0x8ad4885c8f233C4E948DAC0E3D2D72B6979fE33E",
+    "registryCoordinator": "0xA22575Ef1F410c37826f2203ACFadA1334ba46D9",
+    "registryCoordinatorImplementation": "0x40D9AB8649Bc9fa613e2821BC019DcD67231Cb12",
+    "stakeRegistry": "0xcE054e6754E67640Cc24D131920dc666113EF24E",
+    "stakeRegistryImplementation": "0x090A7862dBa3c4682c121D20A1A85B931c8D7204"
   }
 }
