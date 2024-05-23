@@ -207,10 +207,10 @@ contract OpenOracleTaskManager is
                 "Invalid signature or operator address"
             );
 
-            require(
-                stakeRegistry.weightOfOperatorForQuorum(0, msg.sender) >= task.stakeThreshold,
-                "Operator stake not meet minimum threshold"
-            );
+            // require(
+            //     stakeRegistry.weightOfOperatorForQuorum(0, msg.sender) >= task.stakeThreshold,
+            //     "Operator stake not meet minimum threshold"
+            // );
 
             require(
                 responses[i].response.referenceTaskIndex == weightedTaskResponse.referenceTaskIndex,
