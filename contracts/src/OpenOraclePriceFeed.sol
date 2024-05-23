@@ -47,9 +47,14 @@ contract OpenOraclePriceFeed is Initializable, OwnableUpgradeable,
         _stakeThreshold = __stakeThreshold;
     }
 
-    function requestNewReport() external {
+    function requestNewReport() override external {
         _openOracleTaskManager.createNewTask(_taskType, _responderThreshold, _stakeThreshold);
     }
+
+    function requestNewReportWithData(bytes calldata _taskData) override external {
+        _openOracleTaskManager.createNewTaskWithData(_taskType, _responderThreshold, _stakeThreshold, _taskData);
+    }
+
 
     function saveLatestData(
         IOpenOracleTaskManager.Task calldata task,
