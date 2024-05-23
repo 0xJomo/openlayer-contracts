@@ -227,7 +227,9 @@ contract OpenOracleBridgeStakeRegistry is OpenOracleBridgeStakeRegistryStorage, 
     }
 
 
-    function getOperatorSignAddress(address operator) view override public returns(address) {}
+    function getOperatorSignAddress(address operator) view override public returns(address) {
+        return operatorSignAddrs[operator];
+    }
 
     function updateOperatorSignAddresses(
         address[] calldata operators,
