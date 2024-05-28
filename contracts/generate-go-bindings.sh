@@ -31,7 +31,7 @@ done
 EIGENLAYER_MIDDLEWARE_PATH=$script_path/lib/eigenlayer-middleware
 cd $EIGENLAYER_MIDDLEWARE_PATH
 
-avs_contracts="RegistryCoordinator"
+avs_contracts="RegistryCoordinator BLSApkRegistry StakeRegistry"
 for contract in $avs_contracts; do
     create_binding . $contract ./bindings
 done
