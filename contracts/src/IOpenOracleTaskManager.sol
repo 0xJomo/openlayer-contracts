@@ -39,7 +39,7 @@ interface IOpenOracleTaskManager {
         // Can be obtained by the operator from the event NewTaskCreated.
         uint32 referenceTaskIndex;
         // This is just the response that the operator has to compute by itself.
-        uint256 result;
+        bytes result;
         // This is just the response that the operator has to compute by itself.
         uint256 timestamp;
     }
@@ -54,7 +54,7 @@ interface IOpenOracleTaskManager {
         // Can be obtained by the operator from the event NewTaskCreated.
         uint32 referenceTaskIndex;
         // Weighted result from operator responses
-        uint256 result;
+        bytes result;
         // Standard deviation for weighted result
         uint256 sd;
         // Timestamp for result

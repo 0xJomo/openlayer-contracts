@@ -3,7 +3,7 @@ pragma solidity ^0.8.9;
 
 import "./IOpenOracleTaskManager.sol";
 
-interface IOpenOraclePriceFeed {
+interface IOpenOracleCommonPriceFeed {
     event NewPriceReported(
         uint8 indexed taskType, 
         uint32 referenceTaskIndex, 
@@ -15,10 +15,10 @@ interface IOpenOraclePriceFeed {
     );
 
     /// @notice Call the task manager to request latest data
-    function requestNewReport() external;
+    function requestNewReport(uint8 _taskType) external;
 
     /// @notice Call the task manager to request latest data
-    function requestNewReportWithData(bytes calldata _taskData) external;
+    function requestNewReportWithData(uint8 _taskType,bytes calldata _taskData) external;
 
     /// @notice Saves the latest data from task manager in contract
     function saveLatestData(
@@ -28,7 +28,7 @@ interface IOpenOraclePriceFeed {
     ) external;
 
     /// @notice Returns the latest data
-    function latestRoundData() view external returns (
+    function latestRoundData(uint8 taskType) view external returns (
         bytes memory result,
         uint256 sd,
         uint256 timestamp,
@@ -36,5 +36,7 @@ interface IOpenOraclePriceFeed {
         uint32 endBlock
     );
 
-    function setThresholds(uint8 responderThreshold, uint96 stakeThreshold) external;
+    function setDefaultThresholds(uint8 responderThreshold, uint96 stakeThreshold) external;
+
+    function setThresholds(uint8 taskType, uint8 responderThreshold, uint96 stakeThreshold) external;
 }
