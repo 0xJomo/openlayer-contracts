@@ -4,8 +4,8 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 import "@eigenlayer/test/mocks/EmptyContract.sol";
 
-import {OpenOracleCommonPriceFeed} from "../../src/OpenOracleCommonPriceFeed.sol";
-import {IOpenOracleCommonPriceFeed} from "../../src/IOpenOracleCommonPriceFeed.sol";
+import {OpenOracleCommonDataFeed} from "../../src/OpenOracleCommonDataFeed.sol";
+import {IOpenOracleCommonDataFeed} from "../../src/IOpenOracleCommonDataFeed.sol";
 
 import {OpenOracleTaskManager} from "../../src/OpenOracleTaskManager.sol";
 
@@ -17,7 +17,7 @@ import "forge-std/StdJson.sol";
 import "forge-std/console.sol";
 
 // Deploy pricefeeds
-contract OpenOracleCommonPriceFeedsDeployer is Script, Utils {
+contract OpenOracleCommonDataFeedsDeployer is Script, Utils {
     string public deployConfigPath = string.concat("./script/config/", vm.toString(block.chainid), "/config.pricefeeds.json");
 
     ProxyAdmin public openOracleProxyAdmin;
@@ -94,7 +94,7 @@ contract OpenOracleCommonPriceFeedsDeployer is Script, Utils {
         string memory deployed_addresses = "addresses";
         string memory implementation_addresses = "impl_addresses";
 
-            OpenOracleCommonPriceFeed openOraclePriceFeed = OpenOracleCommonPriceFeed(
+            OpenOracleCommonDataFeed openOraclePriceFeed = OpenOracleCommonDataFeed(
                 address(
                     new TransparentUpgradeableProxy(
                         address(emptyContract),
@@ -103,18 +103,18 @@ contract OpenOracleCommonPriceFeedsDeployer is Script, Utils {
                     )
                 )
             );
-        OpenOracleCommonPriceFeed openOraclePriceFeedImplementation = new OpenOracleCommonPriceFeed(
+        OpenOracleCommonDataFeed openOraclePriceFeedImplementation = new OpenOracleCommonDataFeed(
                 openOracleTaskManager
             );
 
             vm.serializeAddress(
                 deployed_addresses,
-                "openOraclePriceFeed",
+                "openOracleDataFeed",
                 address(openOraclePriceFeed)
             );
             vm.serializeAddress(
                 implementation_addresses,
-                "openOraclePriceFeedImplementation",
+                "openOracleDataFeedImplementation",
                 address(openOraclePriceFeedImplementation)
             );
 
@@ -157,7 +157,7 @@ contract OpenOracleCommonPriceFeedsDeployer is Script, Utils {
             deployed_addresses_output
         );
 
-        writeOutput(finalJson, "open_oracle_avs_common_pricefeeds_output");
+        writeOutput(finalJson, "open_oracle_avs_data_feeds_output");
     }
 
     function _parseDeployParams(string memory config_data) internal pure returns (DeployParams memory deployParams) {

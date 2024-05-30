@@ -2,13 +2,13 @@
 pragma solidity ^0.8.9;
 
 import "./OpenOracleTaskManager.sol";
-import "./IOpenOracleCommonPriceFeed.sol";
+import "./IOpenOracleCommonDataFeed.sol";
 
 import {OwnableUpgradeable} from "@openzeppelin-upgrades/contracts/access/OwnableUpgradeable.sol";
 import "@openzeppelin-upgrades/contracts/proxy/utils/Initializable.sol";
 
 
-contract OpenOracleCommonPriceFeed is Initializable, OwnableUpgradeable, IOpenOracleCommonPriceFeed  {
+contract OpenOracleCommonDataFeed is Initializable, OwnableUpgradeable, IOpenOracleCommonDataFeed  {
 
     OpenOracleTaskManager internal immutable _openOracleTaskManager;
 

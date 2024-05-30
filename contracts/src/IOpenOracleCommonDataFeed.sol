@@ -3,7 +3,7 @@ pragma solidity ^0.8.9;
 
 import "./IOpenOracleTaskManager.sol";
 
-interface IOpenOracleCommonPriceFeed {
+interface IOpenOracleCommonDataFeed {
     event NewPriceReported(
         uint8 indexed taskType, 
         uint32 referenceTaskIndex, 
