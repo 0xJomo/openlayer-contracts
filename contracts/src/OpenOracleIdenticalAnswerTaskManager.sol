@@ -177,7 +177,7 @@ contract OpenOracleIdenticalAnswerTaskManager is
                 .getRegisteredPubkey(operators[i]);
             p.plus(pk);
         }
-        (bool pairingSuccessful, bool siganatureIsValid) = blsSignatureChecker.trySignatureAndApkVerification(
+        (bool pairingSuccessful, bool signatureIsValid) = blsSignatureChecker.trySignatureAndApkVerification(
                 messageHash,
                 p,
                 response.apkG2,
