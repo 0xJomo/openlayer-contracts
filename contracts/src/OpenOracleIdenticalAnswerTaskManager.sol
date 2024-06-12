@@ -153,12 +153,12 @@ contract OpenOracleIdenticalAnswerTaskManager is
 
         require(
             keccak256(abi.encode(task)) ==
-                allTaskHashes[response.referenceTaskIndex],
+                allTaskHashes[response.msg.referenceTaskIndex],
             "supplied task does not match the one recorded in the contract"
         );
 
         require(
-            allTaskResponses[response.referenceTaskIndex] == bytes32(0),
+            allTaskResponses[response.msg.referenceTaskIndex] == bytes32(0),
             "Aggregator has already responded to the task"
         );
 
@@ -169,7 +169,7 @@ contract OpenOracleIdenticalAnswerTaskManager is
         );
 
         // TODO: verify the aggregate signature
-        bytes32 messageHash = keccak256(abi.encode(response));
+        bytes32 messageHash = keccak256(abi.encode(response.msg));
         (BN254.G1Point memory p, ) = blsApkRegistry
             .getRegisteredPubkey(operators[0]);
         for (uint i = 1; i < operators.length; i++) {
@@ -180,8 +180,8 @@ contract OpenOracleIdenticalAnswerTaskManager is
         (bool pairingSuccessful, ) = blsSignatureChecker.trySignatureAndApkVerification(
                 messageHash,
                 p,
-                BN254.generatorG2(),
-                BN254.hashToG1(bytes32(response.aggregatedSignature[:32]))
+                response.apkG2,
+                response.aggregatedSignature
             );
         require(pairingSuccessful, "Aggregate signature is not valid");
 
@@ -189,7 +189,7 @@ contract OpenOracleIdenticalAnswerTaskManager is
             uint32(block.number)
         );
         // updating the storage with weighted task response
-        allTaskResponses[response.referenceTaskIndex] = keccak256(
+        allTaskResponses[response.msg.referenceTaskIndex] = keccak256(
             abi.encode(response, taskResponseMetadata)
         );
 

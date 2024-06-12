@@ -34,22 +34,16 @@ interface IOpenOracleIdenticalAnswerTaskManager {
         uint creationFee;
     }
 
-    // Task response is hashed and signed by operators.
-    // these signatures are aggregated and sent to the contract as response.
-    struct IdenticalTaskResponse {
-        // Can be obtained by the operator from the event NewTaskCreated.
+    struct AggregatedMsg {
         uint32 referenceTaskIndex;
-        // This is just the response that the operator has to compute by itself.
         bytes result;
-        // This is just the response that the operator has to compute by itself.
-        uint256 timestamp;
     }
 
     struct AggregatedTaskResponse {
-        uint32 referenceTaskIndex;
-        bytes result;
+        AggregatedMsg msg;
         uint256 timestamp;
-        bytes aggregatedSignature;
+        BN254.G1Point aggregatedSignature;
+        BN254.G2Point apkG2;
     }
 
     // Extra information related to taskResponse, which is filled inside the contract.

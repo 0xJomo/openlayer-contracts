@@ -63,8 +63,8 @@ contract OpenOracleVRFFeed is Initializable, OwnableUpgradeable,
 
         emit NewIdenticalAnswerReported(
             task.taskType, 
-            response.referenceTaskIndex, 
-            response.result,
+            response.msg.referenceTaskIndex,
+            response.msg.result,
             response.timestamp, 
             task.taskCreatedBlock, 
             metadata.taskResponsedBlock
@@ -79,7 +79,7 @@ contract OpenOracleVRFFeed is Initializable, OwnableUpgradeable,
         uint32 endBlock
     ) {
         return (
-            _latestResponse.result,
+            _latestResponse.msg.result,
             _latestResponse.timestamp, 
             _latestCreatedBlock, 
             _latestMetadata.taskResponsedBlock
