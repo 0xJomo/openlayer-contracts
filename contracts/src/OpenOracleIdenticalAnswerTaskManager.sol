@@ -177,13 +177,14 @@ contract OpenOracleIdenticalAnswerTaskManager is
                 .getRegisteredPubkey(operators[i]);
             p.plus(pk);
         }
-        (bool pairingSuccessful, ) = blsSignatureChecker.trySignatureAndApkVerification(
+        (bool pairingSuccessful, bool siganatureIsValid) = blsSignatureChecker.trySignatureAndApkVerification(
                 messageHash,
                 p,
                 response.apkG2,
                 response.aggregatedSignature
             );
-        require(pairingSuccessful, "Aggregate signature is not valid");
+        require(pairingSuccessful, "BLSSignatureChecker.checkSignatures: pairing precompile call failed");
+        require(signatureIsValid, "BLSSignatureChecker.checkSignatures: signature is invalid");
 
         TaskResponseMetadata memory taskResponseMetadata = TaskResponseMetadata(
             uint32(block.number)
