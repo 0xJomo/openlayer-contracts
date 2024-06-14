@@ -87,51 +87,39 @@ contract OpenOracleCommonDataFeedsDeployer is Script, Utils {
 
         // deploy proxy admin for ability to upgrade proxy contracts
         openOracleProxyAdmin = new ProxyAdmin();
-        EmptyContract emptyContract = new EmptyContract();
 
         // WRITE JSON DATA
         string memory parent_object = "parent object";
         string memory deployed_addresses = "addresses";
         string memory implementation_addresses = "impl_addresses";
 
-            OpenOracleCommonDataFeed openOraclePriceFeed = OpenOracleCommonDataFeed(
-                address(
-                    new TransparentUpgradeableProxy(
-                        address(emptyContract),
-                        address(openOracleProxyAdmin),
-                        ""
-                    )
-                )
-            );
+
         OpenOracleCommonDataFeed openOraclePriceFeedImplementation = new OpenOracleCommonDataFeed(
                 openOracleTaskManager
             );
 
-            vm.serializeAddress(
-                deployed_addresses,
-                "openOracleDataFeed",
-                address(openOraclePriceFeed)
-            );
-            vm.serializeAddress(
-                implementation_addresses,
-                "openOracleDataFeedImplementation",
-                address(openOraclePriceFeedImplementation)
-            );
 
-            openOracleProxyAdmin.upgradeAndCall(
-                TransparentUpgradeableProxy(
-                    payable(address(openOraclePriceFeed))
-                ),
-                address(openOraclePriceFeedImplementation),
-                abi.encodeWithSelector(
-                    openOraclePriceFeed.initialize.selector,
+        TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(
+            address(openOraclePriceFeedImplementation), address(openOracleProxyAdmin), abi.encodeWithSelector(
+                    openOraclePriceFeedImplementation.initialize.selector,
                     msg.sender,
                     deployParams.responderThreshold,
                     deployParams.stakeThreshold
                 )
-            );
+        );
 
-            openOracleTaskManager.addToFeedlist(address(openOraclePriceFeed));
+        vm.serializeAddress(
+            deployed_addresses,
+            "openOracleDataFeed",
+            address(proxy)
+        );
+        vm.serializeAddress(
+            implementation_addresses,
+            "openOracleDataFeedImplementation",
+            address(openOraclePriceFeedImplementation)
+        );
+
+        openOracleTaskManager.addToFeedlist(address(proxy));
 
 
         string memory deployed_addresses_output = vm.serializeAddress(
