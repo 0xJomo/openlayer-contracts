@@ -52,19 +52,32 @@ contract OpenOracleVRFFeed is Initializable, OwnableUpgradeable,
             _taskType, taskData, _responderThreshold, _stakeThreshold);
     }
 
+    function createNewTask(bytes calldata taskData,
+        uint8 responderThreshold,
+        uint96 stakeThreshold) external {
+        _openOracleIdenticalAnswerTaskManager.createNewTask(
+            _taskType, taskData, responderThreshold, stakeThreshold);
+    }
+
     function saveLatestData(
         IOpenOracleIdenticalAnswerTaskManager.Task calldata task,
         IOpenOracleIdenticalAnswerTaskManager.AggregatedTaskResponse calldata response, 
         IOpenOracleIdenticalAnswerTaskManager.TaskResponseMetadata calldata metadata
     ) external onlyTaskManager {
+        bytes memory result = new bytes(32);
+        bytes32 data = keccak256(abi.encode(response.aggregatedSignature));
+        assembly {
+            mstore(add(result, 32), data) // Store the bytes32 value at the start of the memory allocated for the bytes array
+        }
         _latestResponse = response;
         _latestMetadata = metadata;
         _latestCreatedBlock = task.taskCreatedBlock;
+        _latestResponse.msg.result = result;
 
         emit NewIdenticalAnswerReported(
             task.taskType, 
             response.msg.referenceTaskIndex,
-            response.msg.result,
+                result,
             response.timestamp, 
             task.taskCreatedBlock, 
             metadata.taskResponsedBlock
