@@ -12,7 +12,6 @@ import {IBLSApkRegistry} from "@eigenlayer-middleware/src/interfaces/IBLSApkRegi
 import {IStakeRegistry} from "@eigenlayer-middleware/src/interfaces/IStakeRegistry.sol";
 
 import {OpenOracleTaskManager} from "../../src/OpenOracleTaskManager.sol";
-import {IOpenOracleTaskManager} from "../../src/IOpenOracleTaskManager.sol";
 import {OpenOracleServiceManager} from "../../src/OpenOracleServiceManager.sol";
 
 import "../../src/ERC20Mock.sol";
@@ -32,7 +31,7 @@ contract OpenOracleTaskManagerDeployer is Script, Utils {
     PauserRegistry public openOraclePauserReg;
 
     OpenOracleTaskManager public openOracleTaskManager;
-    IOpenOracleTaskManager public openOracleTaskManagerImplementation;
+    OpenOracleTaskManager public openOracleTaskManagerImplementation;
 
     struct DeployParams {
         uint32 taskResponseWindowBlock;
@@ -100,24 +99,6 @@ contract OpenOracleTaskManagerDeployer is Script, Utils {
             );
         }
 
-        EmptyContract emptyContract = new EmptyContract();
-
-        // hard-coded inputs
-
-        /**
-         * First, deploy upgradeable proxy contracts that **will point** to the implementations. Since the implementation contracts are
-         * not yet deployed, we give these proxies an empty contract as the initial implementation, to act as if they have no code.
-         */
-        openOracleTaskManager = OpenOracleTaskManager(
-            address(
-                new TransparentUpgradeableProxy(
-                    address(emptyContract),
-                    address(openOracleProxyAdmin),
-                    ""
-                )
-            )
-        );
-
         // Upgrade the proxy contracts to use the correct implementation contracts and initialize them.
         openOracleTaskManagerImplementation = new OpenOracleTaskManager(
             stakeRegistry,
@@ -125,19 +106,17 @@ contract OpenOracleTaskManagerDeployer is Script, Utils {
             deployParams.taskResponseWindowBlock
         );
 
-        // Third, upgrade the proxy contracts to use the correct implementation contracts and initialize them.
-        openOracleProxyAdmin.upgradeAndCall(
-            TransparentUpgradeableProxy(
-                payable(address(openOracleTaskManager))
-            ),
-            address(openOracleTaskManagerImplementation),
-            abi.encodeWithSelector(
-                openOracleTaskManager.initialize.selector,
-                openOraclePauserReg,
-                openOracleCommunityMultisig,
-                deployParams.aggregatorAddr
-            )
+
+        TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(
+            address(openOracleTaskManagerImplementation), address(openOracleProxyAdmin), abi.encodeWithSelector(
+                    openOracleTaskManagerImplementation.initialize.selector,
+                    openOraclePauserReg,
+                    openOracleCommunityMultisig,
+                    deployParams.aggregatorAddr
+                )
         );
+
+        openOracleTaskManager = OpenOracleTaskManager(address(proxy));
 
         // WRITE JSON DATA
         string memory parent_object = "parent object";

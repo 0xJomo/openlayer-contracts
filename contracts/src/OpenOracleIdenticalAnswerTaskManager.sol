@@ -12,22 +12,22 @@ import {BLSSignatureChecker, IRegistryCoordinator} from "@eigenlayer-middleware/
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {OperatorStateRetriever} from "@eigenlayer-middleware/src/OperatorStateRetriever.sol";
 import "@eigenlayer-middleware/src/libraries/BN254.sol";
-import "./IOpenOracleTaskManager.sol";
-import "./IOpenOraclePriceFeed.sol";
-import "@eigenlayer/contracts/libraries/EIP1271SignatureUtils.sol";
+import "./IOpenOracleIdenticalAnswerTaskManager.sol";
+import "./IOpenOracleVRFFeed.sol";
 
-contract OpenOracleTaskManager is
+contract OpenOracleIdenticalAnswerTaskManager is
     Initializable,
     OwnableUpgradeable,
     Pausable,
     OperatorStateRetriever,
-    IOpenOracleTaskManager
+    IOpenOracleIdenticalAnswerTaskManager
 {
     using BN254 for BN254.G1Point;
     using ECDSA for bytes32;
 
     IStakeRegistry public immutable stakeRegistry;
     IBLSApkRegistry public immutable blsApkRegistry;
+    BLSSignatureChecker public immutable blsSignatureChecker;
 
     /* CONSTANT */
     // The number of blocks from the task initialization within which the aggregator has to respond to
@@ -36,7 +36,7 @@ contract OpenOracleTaskManager is
     uint8 private constant _TASKRESPONSE_QUORUM_NUMBER = 0;
 
     // Fee for creating a task
-    uint public taskCreationFee = 0.0001 ether; 
+    uint public taskCreationFee = 0.0001 ether;
 
     /* STORAGE */
     // The latest task index
@@ -67,33 +67,29 @@ contract OpenOracleTaskManager is
         _;
     }
 
-    // modifier paysTaskCreationFee(uint totalRequests) {
-    //     require(msg.value >= taskCreationFee * totalRequests, "Creating a task requires a fee.");
-    //     _;
-    // }
-
     modifier onlyTaskCreator(uint32 taskNum, Task memory task) {
+        require(taskNum <= latestTaskNum, "task number not exists");
         require(
-            taskNum <= latestTaskNum,
-            "task number not exists"
-        );
-        require(
-            keccak256(abi.encode(task)) ==
-                allTaskHashes[taskNum],
+            keccak256(abi.encode(task)) == allTaskHashes[taskNum],
             "supplied task does not match the one recorded in the contract"
         );
-        require(task.creator == msg.sender, "Only the task creator can perform this operation.");
+        require(
+            task.creator == msg.sender,
+            "Only the task creator can perform this operation."
+        );
         _;
     }
 
     constructor(
         IStakeRegistry _stakeRegistry,
         IBLSApkRegistry _BLSApkRegistry,
-        uint32 _taskResponseWindowBlock
+        uint32 _taskResponseWindowBlock,
+        BLSSignatureChecker _blsSignatureChecker
     ) {
         stakeRegistry = _stakeRegistry;
         blsApkRegistry = _BLSApkRegistry;
         TASK_RESPONSE_WINDOW_BLOCK = _taskResponseWindowBlock;
+        blsSignatureChecker = _blsSignatureChecker;
     }
 
     function initialize(
@@ -106,9 +102,7 @@ contract OpenOracleTaskManager is
         aggregator = _aggregator;
     }
 
-    function updateAggregator(
-        address _aggregator
-    ) public onlyOwner {
+    function updateAggregator(address _aggregator) public onlyOwner {
         aggregator = _aggregator;
         emit AggregatorUpdated(aggregator);
     }
@@ -117,58 +111,37 @@ contract OpenOracleTaskManager is
     // NOTE: this function creates new task, assigns it a taskId
     function createNewTask(
         uint8 taskType,
+        bytes calldata taskData,
         uint8 responderThreshold,
         uint96 stakeThreshold
     ) external onlyFeed {
         // create a new task struct
-        Task memory newTask = _createNewTask(taskType, responderThreshold, stakeThreshold);
-        emit NewTaskCreated(latestTaskNum, newTask, "");
-        latestTaskNum = latestTaskNum + 1;
-
-        // // Refund any excess payment
-        // if (msg.value > taskCreationFee) {
-        //     payable(msg.sender).transfer(msg.value - taskCreationFee);
-        // }
-    }
-
-    // NOTE: this function creates new task, assigns it a taskId
-    function createNewTaskWithData(
-        uint8 taskType,
-        uint8 responderThreshold,
-        uint96 stakeThreshold,
-        bytes calldata _taskData
-    ) external onlyFeed {
-        // create a new task struct
-        Task memory newTask = _createNewTask(taskType, responderThreshold, stakeThreshold);
-        emit NewTaskCreated(latestTaskNum, newTask, _taskData);
-        latestTaskNum = latestTaskNum + 1;
-
-        // // Refund any excess payment
-        // if (msg.value > taskCreationFee) {
-        //     payable(msg.sender).transfer(msg.value - taskCreationFee);
-        // }
-    }
-
-    function _createNewTask(
-        uint8 taskType,
-        uint8 responderThreshold,
-        uint96 stakeThreshold) private returns (Task memory newTask){
-        // create a new task struct
+        Task memory newTask;
         newTask.taskType = taskType;
+        newTask.taskData = taskData;
         newTask.taskCreatedBlock = uint32(block.number);
         newTask.stakeThreshold = stakeThreshold;
         newTask.responderThreshold = responderThreshold;
         newTask.creator = payable(msg.sender);
         newTask.creationFee = 0; // msg.value;
+
         // store hash of task onchain, emit event, and increase taskNum
         allTaskHashes[latestTaskNum] = keccak256(abi.encode(newTask));
+        emit NewIdenticalAnswerTaskCreated(latestTaskNum, newTask);
+
+        latestTaskNum = latestTaskNum + 1;
+
+        // // Refund any excess payment
+        // if (msg.value > taskCreationFee) {
+        //     payable(msg.sender).transfer(msg.value - taskCreationFee);
+        // }
     }
 
     // NOTE: this function responds to existing tasks.
     function respondToTask(
         Task calldata task,
-        OperatorResponse[] calldata responses,
-        WeightedTaskResponse calldata weightedTaskResponse
+        address[] calldata operators,
+        AggregatedTaskResponse calldata response
     ) external onlyAggregator {
         uint32 taskCreatedBlock = task.taskCreatedBlock;
 
@@ -179,70 +152,63 @@ contract OpenOracleTaskManager is
         );
 
         require(
-            responses.length > 0,
-            "Operator responses should not be empty"
-        );
-
-        require(
-            keccak256(abi.encode(task)) == allTaskHashes[weightedTaskResponse.referenceTaskIndex],
+            keccak256(abi.encode(task)) ==
+                allTaskHashes[response.msg.referenceTaskIndex],
             "supplied task does not match the one recorded in the contract"
         );
 
         require(
-            allTaskResponses[weightedTaskResponse.referenceTaskIndex] == bytes32(0),
+            allTaskResponses[response.msg.referenceTaskIndex] == bytes32(0),
             "Aggregator has already responded to the task"
         );
-        
 
-        // check that the task is valid, hasn't been responsed yet, and is being responsed in time
-        for (uint i = 0; i < responses.length; i++) {
-            // Verify ECDSA signature
-            bytes32 messageHash = keccak256(abi.encode(responses[i].response));
-            bytes32 ethSignedMessageHash = messageHash.toEthSignedMessageHash();
-//            address recover = ethSignedMessageHash.recover(responses[i].signature);
-//            require(
-//                recover ==
-//                    responses[i].operator ||
-//                recover ==
-//                    stakeRegistry.getOperatorSignAddress(responses[i].operator),
-//                "Invalid signature or operator address"
-//            );
+        require(
+            stakeRegistry.weightOfOperatorForQuorum(0, msg.sender) >=
+                task.stakeThreshold,
+            "Operator stake not meet minimum threshold"
+        );
 
-            address signer = stakeRegistry.getOperatorSignAddress(responses[i].operator);
-            if(signer != address(0)){
-                EIP1271SignatureUtils.checkSignature_EIP1271(signer,ethSignedMessageHash,responses[i].signature);
-            }else{
-                EIP1271SignatureUtils.checkSignature_EIP1271(responses[i].operator,ethSignedMessageHash,responses[i].signature);
-            }
-
-            // require(
-            //     stakeRegistry.weightOfOperatorForQuorum(0, msg.sender) >= task.stakeThreshold,
-            //     "Operator stake not meet minimum threshold"
-            // );
-
-            require(
-                responses[i].response.referenceTaskIndex == weightedTaskResponse.referenceTaskIndex,
-                "Aggregator response task indices should be consistent"
-            );
+        // TODO: verify the aggregate signature
+        bytes32 messageHash = keccak256(abi.encode(response.msg));
+        (BN254.G1Point memory p, ) = blsApkRegistry
+            .getRegisteredPubkey(operators[0]);
+        for (uint i = 1; i < operators.length; i++) {
+            (BN254.G1Point memory pk, ) = blsApkRegistry
+                .getRegisteredPubkey(operators[i]);
+            p.plus(pk);
         }
+        (bool pairingSuccessful, bool signatureIsValid) = blsSignatureChecker.trySignatureAndApkVerification(
+                messageHash,
+                p,
+                response.apkG2,
+                response.aggregatedSignature
+            );
+        require(pairingSuccessful, "BLSSignatureChecker.checkSignatures: pairing precompile call failed");
+        require(signatureIsValid, "BLSSignatureChecker.checkSignatures: signature is invalid");
 
         TaskResponseMetadata memory taskResponseMetadata = TaskResponseMetadata(
             uint32(block.number)
         );
-        // updating the storage with weighted task responsea
-        allTaskResponses[weightedTaskResponse.referenceTaskIndex] = keccak256(
-            abi.encode(weightedTaskResponse, taskResponseMetadata)
+        // updating the storage with weighted task response
+        allTaskResponses[response.msg.referenceTaskIndex] = keccak256(
+            abi.encode(response, taskResponseMetadata)
         );
 
-        require(isFeed[task.creator], "Feed needs to register with task manager");
-        IOpenOraclePriceFeed oraclePriceFeed = IOpenOraclePriceFeed(task.creator);
-        oraclePriceFeed.saveLatestData(task, weightedTaskResponse, taskResponseMetadata);
+        require(
+            isFeed[task.creator],
+            "Feed needs to register with task manager"
+        );
+        IOpenOracleVRFFeed vrfFeed = IOpenOracleVRFFeed(task.creator);
+        vrfFeed.saveLatestData(task, response, taskResponseMetadata);
 
         // emitting event
-        emit TaskResponded(task, weightedTaskResponse, taskResponseMetadata);
+        emit TaskResponded(task, response, taskResponseMetadata);
     }
 
-    function withdrawTaskFunds(uint32 taskNum, Task memory task) external onlyTaskCreator(taskNum, task) {
+    function withdrawTaskFunds(
+        uint32 taskNum,
+        Task memory task
+    ) external onlyTaskCreator(taskNum, task) {
         require(
             allTaskResponses[taskNum] != bytes32(0),
             "Cannot withdraw funds for a completed task."

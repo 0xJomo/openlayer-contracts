@@ -135,43 +135,6 @@ contract OpenOracleBridgeBLSApkRegistry is
         PubkeyRegistrationParams calldata params,
         BN254.G1Point calldata pubkeyRegistrationMessageHash
     ) external onlyRegistryCoordinator override returns (bytes32 operatorId) {
-        bytes32 pubkeyHash = BN254.hashG1Point(params.pubkeyG1);
-        require(
-            pubkeyHash != ZERO_PK_HASH, "BLSApkRegistry.updateBLSPublicKey: cannot update zero pubkey"
-        );
-        require(
-            operatorToPubkeyHash[operator] != pubkeyHash,
-            "BLSApkRegistry.updateBLSPublicKey: cannot update to same pubkey"
-        );
-
-        // gamma = h(sigma, P, P', H(m))
-        uint256 gamma = uint256(keccak256(abi.encodePacked(
-                params.pubkeyRegistrationSignature.X,
-                params.pubkeyRegistrationSignature.Y,
-                params.pubkeyG1.X,
-                params.pubkeyG1.Y,
-                params.pubkeyG2.X,
-                params.pubkeyG2.Y,
-                pubkeyRegistrationMessageHash.X,
-                pubkeyRegistrationMessageHash.Y
-            ))) % BN254.FR_MODULUS;
-
-        // e(sigma + P * gamma, [-1]_2) = e(H(m) + [1]_1 * gamma, P')
-        require(BN254.pairing(
-                params.pubkeyRegistrationSignature.plus(params.pubkeyG1.scalar_mul(gamma)),
-                BN254.negGeneratorG2(),
-                pubkeyRegistrationMessageHash.plus(BN254.generatorG1().scalar_mul(gamma)),
-                params.pubkeyG2
-            ), "BLSApkRegistry.updateBLSPublicKey: either the G1 signature is wrong, or G1 and G2 private key do not match");
-
-        _processQuorumApkUpdate(quorumNumbers, operatorToPubkey[operator].negate());
-        operatorToPubkey[operator] = params.pubkeyG1;
-        operatorToPubkeyHash[operator] = pubkeyHash;
-        pubkeyHashToOperator[pubkeyHash] = operator;
-        _processQuorumApkUpdate(quorumNumbers, operatorToPubkey[operator]);
-
-        emit NewPubkeyUpdate(operator, params.pubkeyG1, params.pubkeyG2);
-        return pubkeyHash;
     }
 
     /*******************************************************************************
@@ -192,7 +155,21 @@ contract OpenOracleBridgeBLSApkRegistry is
      */
     function getRegisteredPubkey(
         address operator
-    ) public view returns (BN254.G1Point memory, bytes32) {}
+    ) public view returns (BN254.G1Point memory, bytes32) {
+        BN254.G1Point memory pubkey = operatorToPubkey[operator];
+        bytes32 pubkeyHash = operatorToPubkeyHash[operator];
+        return (pubkey, pubkeyHash);
+    }
+
+    function updateOperatorPublicKey(
+        address operator,
+        BN254.G1Point calldata pubkeyG1
+    ) external onlyOwner {
+        bytes32 pubkeyHash = BN254.hashG1Point(pubkeyG1);
+        operatorToPubkey[operator] = pubkeyG1;
+        operatorToPubkeyHash[operator] = pubkeyHash;
+        pubkeyHashToOperator[pubkeyHash] = operator;
+    }
 
     /**
      * @notice Returns the indices of the quorumApks index at `blockNumber` for the provided `quorumNumbers`

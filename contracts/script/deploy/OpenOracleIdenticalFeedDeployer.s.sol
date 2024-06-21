@@ -2,12 +2,13 @@
 pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
-import "@eigenlayer/test/mocks/EmptyContract.sol";
-
-import {OpenOraclePriceFeed} from "../../src/OpenOraclePriceFeed.sol";
-import {IOpenOraclePriceFeed} from "../../src/IOpenOraclePriceFeed.sol";
-
-import {OpenOracleTaskManager} from "../../src/OpenOracleTaskManager.sol";
+import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+import {OpenOracleIdenticalAnswerTaskManager} from "../../src/OpenOracleIdenticalAnswerTaskManager.sol";
+import {OpenOracleVRFFeed} from "../../src/OpenOracleVRFFeed.sol";
+import {BLSApkRegistry} from "@eigenlayer-middleware/src/BLSApkRegistry.sol";
+import {StakeRegistry} from "@eigenlayer-middleware/src/StakeRegistry.sol";
+import "@eigenlayer/contracts/permissions/PauserRegistry.sol";
+import {BLSSignatureChecker,IRegistryCoordinator} from "@eigenlayer-middleware/src/BLSSignatureChecker.sol";
 
 import {Utils} from "../utils/Utils.sol";
 
@@ -17,10 +18,10 @@ import "forge-std/StdJson.sol";
 import "forge-std/console.sol";
 
 // Deploy pricefeeds
-contract OpenOraclePriceFeedsDeployer is Script, Utils {
+contract OpenOracleIdenticalFeedDeployer is Script, Utils {
     string public deployConfigPath = string.concat("./script/config/", vm.toString(block.chainid), "/config.pricefeeds.json");
 
-    ProxyAdmin public openOracleProxyAdmin;
+    OpenOracleIdenticalAnswerTaskManager openOracleIdenticalAnswerTaskManager;
 
     struct DeployParams {
         uint8 taskTypeLower;
@@ -33,23 +34,23 @@ contract OpenOraclePriceFeedsDeployer is Script, Utils {
         if (value == 0) {
             return "0";
         }
- 
+
         uint8 temp = value;
         uint8 digits;
- 
+
         while (temp != 0) {
             digits++;
             temp /= 10;
         }
- 
+
         bytes memory buffer = new bytes(digits);
- 
+
         while (value != 0) {
             digits--;
             buffer[digits] = bytes1(uint8(48 + (value % 10)));
             value /= 10;
         }
- 
+
         return string(buffer);
     }
 
@@ -59,37 +60,45 @@ contract OpenOraclePriceFeedsDeployer is Script, Utils {
             "open_oracle_avs_deployment_output"
         );
 
-        OpenOracleTaskManager openOracleTaskManager = OpenOracleTaskManager(
-            stdJson.readAddress(
-                openOracleDeployedContracts,
-                ".addresses.openOracleTaskManager"
-            )
-        );
-
-        openOracleProxyAdmin = ProxyAdmin(
+        ProxyAdmin proxyAdmin = ProxyAdmin(
             stdJson.readAddress(
                 openOracleDeployedContracts,
                 ".addresses.proxyAdmin"
             )
         );
+
+        string memory openOracleDeployedIdenticalContracts = readOutput(
+            "open_oracle_avs_identical_task_manager_output"
+        );
+
+        openOracleIdenticalAnswerTaskManager = OpenOracleIdenticalAnswerTaskManager(
+            stdJson.readAddress(
+                openOracleDeployedIdenticalContracts,
+                ".addresses.openOracleIdenticalAnswerTaskManager"
+            )
+        );
+
+        address openOracleCommunityMultisig = msg.sender;
+        address openOraclePauser = msg.sender;
+
         vm.startBroadcast();
 
         _deployOpenOraclePriceFeeds(
-            openOracleTaskManager,
-            msg.sender
+            proxyAdmin
         );
         vm.stopBroadcast();
     }
 
     function _deployOpenOraclePriceFeeds(
-        OpenOracleTaskManager openOracleTaskManager,
-        address openOracleCommunityMultisig
+        ProxyAdmin proxyAdmin
     ) internal {
         // READ JSON CONFIG DATA
         string memory config_data = vm.readFile(deployConfigPath);
-        
+
         // parse initalization params and permissions from config data
         DeployParams memory deployParams = _parseDeployParams(config_data);
+
+
 
 
         // WRITE JSON DATA
@@ -99,13 +108,12 @@ contract OpenOraclePriceFeedsDeployer is Script, Utils {
 
         for (uint8 i = deployParams.taskTypeLower; i <= deployParams.taskTypeUpper; i++) {
 
-            OpenOraclePriceFeed openOraclePriceFeedImplementation = new OpenOraclePriceFeed(
-                openOracleTaskManager
+            OpenOracleVRFFeed openOracleVRFFeedImplementation = new OpenOracleVRFFeed(
+                openOracleIdenticalAnswerTaskManager
             );
-
-            TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(
-                address(openOraclePriceFeedImplementation), address(openOracleProxyAdmin), abi.encodeWithSelector(
-                        openOraclePriceFeedImplementation.initialize.selector,
+            TransparentUpgradeableProxy openOracleVRFFeed = new TransparentUpgradeableProxy(
+                address(openOracleVRFFeedImplementation), address(proxyAdmin), abi.encodeWithSelector(
+                        openOracleVRFFeedImplementation.initialize.selector,
                         msg.sender,
                         i,
                         deployParams.responderThreshold,
@@ -116,26 +124,26 @@ contract OpenOraclePriceFeedsDeployer is Script, Utils {
             vm.serializeAddress(
                 deployed_addresses,
                 toString(i),
-                address(proxy)
+                address(openOracleVRFFeed)
             );
             vm.serializeAddress(
                 implementation_addresses,
                 toString(i),
-                address(openOraclePriceFeedImplementation)
+                address(openOracleVRFFeedImplementation)
             );
-
-            openOracleTaskManager.addToFeedlist(address(proxy));
+            openOracleIdenticalAnswerTaskManager.addToFeedlist(address(openOracleVRFFeed));
         }
 
         string memory deployed_addresses_output = vm.serializeAddress(
             deployed_addresses,
-            "openOracleTaskManager",
-            address(openOracleTaskManager)
+            "openOracleIdenticalAnswerTaskManager",
+                address(openOracleIdenticalAnswerTaskManager)
         );
+
         string memory implementation_addresses_output = vm.serializeAddress(
             implementation_addresses,
             "proxyAdmin",
-            address(openOracleProxyAdmin)
+            address(proxyAdmin)
         );
 
         // serialize all the data
@@ -150,7 +158,7 @@ contract OpenOraclePriceFeedsDeployer is Script, Utils {
             deployed_addresses_output
         );
 
-        writeOutput(finalJson, "open_oracle_avs_pricefeeds_output_v2");
+        writeOutput(finalJson, "open_oracle_avs_identical_feed_output");
     }
 
     function _parseDeployParams(string memory config_data) internal pure returns (DeployParams memory deployParams) {
@@ -167,3 +175,4 @@ contract OpenOraclePriceFeedsDeployer is Script, Utils {
         deployParams.stakeThreshold = abi.decode(stakeThresholdRaw, (uint96));
     }
 }
+
