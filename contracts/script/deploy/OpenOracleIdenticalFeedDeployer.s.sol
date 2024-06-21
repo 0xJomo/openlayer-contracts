@@ -105,12 +105,12 @@ contract OpenOracleIdenticalFeedDeployer is Script, Utils {
         string memory parent_object = "parent object";
         string memory deployed_addresses = "addresses";
         string memory implementation_addresses = "impl_addresses";
+        OpenOracleVRFFeed openOracleVRFFeedImplementation = new OpenOracleVRFFeed(
+            openOracleIdenticalAnswerTaskManager
+        );
 
         for (uint8 i = deployParams.taskTypeLower; i <= deployParams.taskTypeUpper; i++) {
 
-            OpenOracleVRFFeed openOracleVRFFeedImplementation = new OpenOracleVRFFeed(
-                openOracleIdenticalAnswerTaskManager
-            );
             TransparentUpgradeableProxy openOracleVRFFeed = new TransparentUpgradeableProxy(
                 address(openOracleVRFFeedImplementation), address(proxyAdmin), abi.encodeWithSelector(
                         openOracleVRFFeedImplementation.initialize.selector,

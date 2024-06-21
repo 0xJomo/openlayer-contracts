@@ -97,11 +97,12 @@ contract OpenOraclePriceFeedsDeployer is Script, Utils {
         string memory deployed_addresses = "addresses";
         string memory implementation_addresses = "impl_addresses";
 
+        OpenOraclePriceFeed openOraclePriceFeedImplementation = new OpenOraclePriceFeed(
+            openOracleTaskManager
+        );
+
         for (uint8 i = deployParams.taskTypeLower; i <= deployParams.taskTypeUpper; i++) {
 
-            OpenOraclePriceFeed openOraclePriceFeedImplementation = new OpenOraclePriceFeed(
-                openOracleTaskManager
-            );
 
             TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(
                 address(openOraclePriceFeedImplementation), address(openOracleProxyAdmin), abi.encodeWithSelector(
