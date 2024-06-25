@@ -1,7 +1,7 @@
 {
   "addresses": {
-    "openOracleTaskManager": "0xccEb58c3fA39E09d6BB32c647DFEa934F39C1D9e",
-    "openOracleTaskManagerImplementation": "0xC3e76E9213D5d61A7aadEb1Bc5d8285632d10d7c",
-    "proxyAdmin": "0x5092432090669464fF57fD6d2b9EB3b10D7f41B6"
+    "openOracleTaskManager": "0xd50927429F7Bb1191037B639fE6358b26b364F93",
+    "openOracleTaskManagerImplementation": "0x479c2A724bEA431Eb721f0E7D9a2c4E2EFC20A24",
+    "proxyAdmin": "0x832959Db14527437fBdaAE6994ab45Fa987Cc491"
   }
 }
