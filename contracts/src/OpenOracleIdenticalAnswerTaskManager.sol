@@ -175,7 +175,7 @@ contract OpenOracleIdenticalAnswerTaskManager is
         for (uint i = 1; i < operators.length; i++) {
             (BN254.G1Point memory pk, ) = blsApkRegistry
                 .getRegisteredPubkey(operators[i]);
-            p.plus(pk);
+            p = p.plus(pk);
         }
         (bool pairingSuccessful, bool signatureIsValid) = blsSignatureChecker.trySignatureAndApkVerification(
                 messageHash,
