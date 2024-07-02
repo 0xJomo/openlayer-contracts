@@ -56,7 +56,7 @@ contract OpenOracleCommonDataFeedsDeployer is Script, Utils {
     function run() external {
         // Eigenlayer contracts
         string memory openOracleDeployedContracts = readOutput(
-            "open_oracle_avs_deployment_output"
+            "open_oracle_avs_task_manager_deployment_output"
         );
 
         OpenOracleTaskManager openOracleTaskManager = OpenOracleTaskManager(
