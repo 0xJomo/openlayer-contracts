@@ -126,6 +126,12 @@ contract OpenOracleIdenticalTaskManagerDeployer is Script, Utils {
         string memory implementation_addresses = "impl_addresses";
 
         BLSSignatureChecker blsSignatureCheckerImpl = new BLSSignatureChecker(registryCoordinator);
+        vm.serializeAddress(
+            deployed_addresses,
+            "BLSSignatureChecker",
+            address(blsSignatureCheckerImpl)
+        );
+        
         OpenOracleIdenticalAnswerTaskManager openOracleIdenticalAnswerTaskManagerImpl = new OpenOracleIdenticalAnswerTaskManager(
             stakeRegistry,
             blsApkRegistry,
