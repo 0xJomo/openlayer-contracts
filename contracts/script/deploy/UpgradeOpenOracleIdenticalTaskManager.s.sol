@@ -17,10 +17,10 @@ import "forge-std/StdJson.sol";
 import "forge-std/console.sol";
 
 // Deploy pricefeeds
-contract OpenOracleIdenticalTaskManagerDeployer is Script, Utils {
+contract UpgradeOpenOracleIdenticalTaskManager is Script, Utils {
 
     string public deployAVSConfigPath = string.concat("./script/config/", vm.toString(block.chainid), "/config.avs.json");
-
+    OpenOracleIdenticalAnswerTaskManager openOracleIdenticalAnswerTaskManager;
     struct DeployParams {
         uint8 taskTypeLower;
         uint8 taskTypeUpper;
@@ -90,6 +90,13 @@ contract OpenOracleIdenticalTaskManagerDeployer is Script, Utils {
             )
         );
 
+        openOracleIdenticalAnswerTaskManager = OpenOracleIdenticalAnswerTaskManager(
+            stdJson.readAddress(
+                openOracleDeployedContracts,
+                ".addresses.openOracleIdenticalAnswerTaskManager"
+            )
+        );
+
         address openOracleCommunityMultisig = msg.sender;
         address openOraclePauser = msg.sender;
 
@@ -126,42 +133,30 @@ contract OpenOracleIdenticalTaskManagerDeployer is Script, Utils {
         string memory implementation_addresses = "impl_addresses";
 
         BLSSignatureChecker blsSignatureCheckerImpl = new BLSSignatureChecker(registryCoordinator);
+
         vm.serializeAddress(
             deployed_addresses,
             "BLSSignatureChecker",
             address(blsSignatureCheckerImpl)
         );
-        
         OpenOracleIdenticalAnswerTaskManager openOracleIdenticalAnswerTaskManagerImpl = new OpenOracleIdenticalAnswerTaskManager(
             stakeRegistry,
             blsApkRegistry,
                 deployAvsParams.taskResponseWindowBlock,
                 blsSignatureCheckerImpl
         );
-        PauserRegistry openOraclePauserReg;
-        {
-            address[] memory pausers = new address[](2);
-            pausers[0] = openOracleCommunityMultisig;
-            pausers[1] = openOracleCommunityMultisig;
-            openOraclePauserReg = new PauserRegistry(
-                pausers,
-                openOracleCommunityMultisig
-            );
-        }
 
-        TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(
-            address(openOracleIdenticalAnswerTaskManagerImpl), address(proxyAdmin), abi.encodeWithSelector(
-                    openOracleIdenticalAnswerTaskManagerImpl.initialize.selector,
-                    openOraclePauserReg,
-                    openOracleCommunityMultisig,
-                        deployAvsParams.aggregatorAddr
-                )
+        proxyAdmin.upgrade(
+            TransparentUpgradeableProxy(
+                payable(address(openOracleIdenticalAnswerTaskManager))
+            ),
+            address(openOracleIdenticalAnswerTaskManagerImpl)
         );
 
         string memory deployed_addresses_output = vm.serializeAddress(
             deployed_addresses,
             "openOracleIdenticalAnswerTaskManager",
-            address(proxy)
+            address(openOracleIdenticalAnswerTaskManager)
         );
 
         string memory implementation_addresses_output = vm.serializeAddress(
@@ -183,7 +178,7 @@ contract OpenOracleIdenticalTaskManagerDeployer is Script, Utils {
             deployed_addresses_output
         );
 
-        writeOutput(finalJson, "open_oracle_avs_identical_task_manager_output");
+        writeOutput(finalJson, "upgrade_open_oracle_avs_identical_task_manager_output");
     }
 
     function _parseAvsDeployParams(string memory config_data) internal pure returns (DeployAvsParams memory deployParams) {

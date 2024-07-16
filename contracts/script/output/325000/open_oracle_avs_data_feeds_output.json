@@ -1,10 +1,10 @@
 {
   "addresses": {
-    "openOracleDataFeed": "0x31E70f496f511b2c8AbeD4d6a32Cb572dbC4077E",
-    "openOracleTaskManager": "0x39c53478240b69bE0A71c41BE3f0CAcc2a9700b9"
+    "openOracleDataFeed": "0xabc6C2f445d253Db6C1f62602E911c9E8cf90880",
+    "openOracleTaskManager": "0xd28663888E6c7016104f413B2f7e9af6FCE5191a"
   },
   "impl_addresses": {
-    "openOracleDataFeedImplementation": "0x0EcfbBd626d6B512CeCa9973fD03eEDc4C5A48C0",
-    "proxyAdmin": "0x1dBAeF3316b2031F73658ae577340Aa548DbD687"
+    "openOracleDataFeedImplementation": "0x5b3f4a14Ab993332Ee92BE2EAB438439F4bf2677",
+    "proxyAdmin": "0xCbdC658Df2C735b7FD57eE5E20B7DD57cd8fEa0c"
   }
 }
