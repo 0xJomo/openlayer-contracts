@@ -1,0 +1,7 @@
+{
+  "addresses": {
+    "openOracleTaskManager": "0xa3481eE8b0FdaBD43DD4d0177CbD932469Af3dbC",
+    "openOracleTaskManagerImplementation": "0xDE7d6D1AB2F420aC9fF8ff705D43e23E8fDc668d",
+    "proxyAdmin": "0xD864BDACB9fc4d7e2a7bC432384fF1Ce3FFCf420"
+  }
+}
