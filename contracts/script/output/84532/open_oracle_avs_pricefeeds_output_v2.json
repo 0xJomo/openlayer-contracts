@@ -1,10 +1,10 @@
 {
   "addresses": {
-    "0": "0xa91ab6544bd887B23aae1921A7A446cd05fc60F5",
-    "openOracleTaskManager": "0xa3481eE8b0FdaBD43DD4d0177CbD932469Af3dbC"
+    "0": "0xa5f08545f787FaB045b1D4a0ba78795787A298C7",
+    "openOracleTaskManager": "0x8866bBe1DAdc846BaBa0e5196493434A3D8F49Fe"
   },
   "impl_addresses": {
-    "0": "0xF8949De3e9f9CeA0e8E747990054667666A86730",
-    "proxyAdmin": "0xD864BDACB9fc4d7e2a7bC432384fF1Ce3FFCf420"
+    "0": "0x500979809380aA23d165A6fC8e9040ddFAeB68Dc",
+    "proxyAdmin": "0x77f3B40828D0CFd7E1Dd116D47D8233d18Eb6f29"
   }
 }
