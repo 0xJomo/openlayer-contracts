@@ -1,4 +1,4 @@
 {
   "aggregatorAddr": "0x2fAb4D879D08ee87Ec5C32dFFD8ea1059886434b",
-  "taskResponseWindowBlock": 120
+  "taskResponseWindowBlock": 300
 }
