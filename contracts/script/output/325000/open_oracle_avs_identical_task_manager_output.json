@@ -1,0 +1,8 @@
+{
+  "addresses": {
+    "openOracleIdenticalAnswerTaskManager": "0xE2a04Ef6470eafA59F81b511955c97aD2a164AC0"
+  },
+  "impl_addresses": {
+    "openOracleIdenticalAnswerTaskManagerImplementation": "0x5E9201c926D8C844AcE34255d615a15FE271caA6"
+  }
+}

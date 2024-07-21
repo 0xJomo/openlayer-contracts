@@ -20,6 +20,7 @@ contract OpenOracleServiceManager is ServiceManagerBase {
         string chainName;
         address taskManagerAddress;
         bool isActive;
+        uint8 managerType;
     }
 
     // Mapping from unique identifiers to task managers
@@ -63,7 +64,17 @@ contract OpenOracleServiceManager is ServiceManagerBase {
     /// @param taskManagerAddress The address of the Task Manager contract.
     function addTaskManager(string memory chainName, address taskManagerAddress) external onlyOwner {
         uint256 id = taskManagerCount++;
-        taskManagers[id] = TaskManagerEntry(chainName, taskManagerAddress, true);
+        taskManagers[id] = TaskManagerEntry(chainName, taskManagerAddress, true, 0);
+        emit TaskManagerAdded(id, chainName, taskManagerAddress);
+    }
+
+    /// @notice Adds a new Task Manager entry to the list.
+    /// @param chainName The chain associated with the Task Manager.
+    /// @param taskManagerAddress The address of the Task Manager contract.
+    /// @param managerType The type of the Task Manager contract. 0: "TaskManager",1 : OpenOracleIdenticalAnswerTaskManager
+    function addTaskManager(string memory chainName, address taskManagerAddress, uint8 managerType) external onlyOwner {
+        uint256 id = taskManagerCount++;
+        taskManagers[id] = TaskManagerEntry(chainName, taskManagerAddress, true, managerType);
         emit TaskManagerAdded(id, chainName, taskManagerAddress);
     }
 

@@ -23,7 +23,7 @@ rm -rf bindings/*
 forge clean
 forge build
 
-avs_service_contracts="OpenOracleServiceManager OpenOracleTaskManager"
+avs_service_contracts="OpenOracleServiceManager OpenOracleTaskManager OpenOracleIdenticalAnswerTaskManager"
 for contract in $avs_service_contracts; do
     create_binding . $contract ./bindings
 done

@@ -56,7 +56,7 @@ contract OpenOraclePriceFeedsDeployer is Script, Utils {
     function run() external {
         // Eigenlayer contracts
         string memory openOracleDeployedContracts = readOutput(
-            "open_oracle_avs_deployment_output"
+            "open_oracle_avs_task_manager_deployment_output"
         );
 
         OpenOracleTaskManager openOracleTaskManager = OpenOracleTaskManager(
@@ -66,6 +66,12 @@ contract OpenOraclePriceFeedsDeployer is Script, Utils {
             )
         );
 
+        openOracleProxyAdmin = ProxyAdmin(
+            stdJson.readAddress(
+                openOracleDeployedContracts,
+                ".addresses.proxyAdmin"
+            )
+        );
         vm.startBroadcast();
 
         _deployOpenOraclePriceFeeds(
@@ -85,33 +91,33 @@ contract OpenOraclePriceFeedsDeployer is Script, Utils {
         // parse initalization params and permissions from config data
         DeployParams memory deployParams = _parseDeployParams(config_data);
 
-        // deploy proxy admin for ability to upgrade proxy contracts
-        openOracleProxyAdmin = new ProxyAdmin();
-        EmptyContract emptyContract = new EmptyContract();
 
         // WRITE JSON DATA
         string memory parent_object = "parent object";
         string memory deployed_addresses = "addresses";
         string memory implementation_addresses = "impl_addresses";
 
+        OpenOraclePriceFeed openOraclePriceFeedImplementation = new OpenOraclePriceFeed(
+            openOracleTaskManager
+        );
+
         for (uint8 i = deployParams.taskTypeLower; i <= deployParams.taskTypeUpper; i++) {
-            OpenOraclePriceFeed openOraclePriceFeed = OpenOraclePriceFeed(
-                address(
-                    new TransparentUpgradeableProxy(
-                        address(emptyContract),
-                        address(openOracleProxyAdmin),
-                        ""
+
+
+            TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(
+                address(openOraclePriceFeedImplementation), address(openOracleProxyAdmin), abi.encodeWithSelector(
+                        openOraclePriceFeedImplementation.initialize.selector,
+                        msg.sender,
+                        i,
+                        deployParams.responderThreshold,
+                        deployParams.stakeThreshold
                     )
-                )
-            );
-            IOpenOraclePriceFeed openOraclePriceFeedImplementation = new OpenOraclePriceFeed(
-                openOracleTaskManager
             );
 
             vm.serializeAddress(
                 deployed_addresses,
                 toString(i),
-                address(openOraclePriceFeed)
+                address(proxy)
             );
             vm.serializeAddress(
                 implementation_addresses,
@@ -119,21 +125,7 @@ contract OpenOraclePriceFeedsDeployer is Script, Utils {
                 address(openOraclePriceFeedImplementation)
             );
 
-            openOracleProxyAdmin.upgradeAndCall(
-                TransparentUpgradeableProxy(
-                    payable(address(openOraclePriceFeed))
-                ),
-                address(openOraclePriceFeedImplementation),
-                abi.encodeWithSelector(
-                    openOraclePriceFeed.initialize.selector,
-                    msg.sender,
-                    i, 
-                    deployParams.responderThreshold, 
-                    deployParams.stakeThreshold
-                )
-            );
-
-            openOracleTaskManager.addToFeedlist(address(openOraclePriceFeed));
+            openOracleTaskManager.addToFeedlist(address(proxy));
         }
 
         string memory deployed_addresses_output = vm.serializeAddress(

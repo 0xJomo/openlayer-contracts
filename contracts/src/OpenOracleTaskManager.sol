@@ -14,6 +14,7 @@ import {OperatorStateRetriever} from "@eigenlayer-middleware/src/OperatorStateRe
 import "@eigenlayer-middleware/src/libraries/BN254.sol";
 import "./IOpenOracleTaskManager.sol";
 import "./IOpenOraclePriceFeed.sol";
+import "@eigenlayer/contracts/libraries/EIP1271SignatureUtils.sol";
 
 contract OpenOracleTaskManager is
     Initializable,
@@ -198,14 +199,21 @@ contract OpenOracleTaskManager is
             // Verify ECDSA signature
             bytes32 messageHash = keccak256(abi.encode(responses[i].response));
             bytes32 ethSignedMessageHash = messageHash.toEthSignedMessageHash();
-            address recover = ethSignedMessageHash.recover(responses[i].signature);
-            require(
-                recover ==
-                    responses[i].operator ||
-                recover ==
-                    stakeRegistry.getOperatorSignAddress(responses[i].operator),
-                "Invalid signature or operator address"
-            );
+//            address recover = ethSignedMessageHash.recover(responses[i].signature);
+//            require(
+//                recover ==
+//                    responses[i].operator ||
+//                recover ==
+//                    stakeRegistry.getOperatorSignAddress(responses[i].operator),
+//                "Invalid signature or operator address"
+//            );
+
+            address signer = stakeRegistry.getOperatorSignAddress(responses[i].operator);
+            if(signer != address(0)){
+                EIP1271SignatureUtils.checkSignature_EIP1271(signer,ethSignedMessageHash,responses[i].signature);
+            }else{
+                EIP1271SignatureUtils.checkSignature_EIP1271(responses[i].operator,ethSignedMessageHash,responses[i].signature);
+            }
 
             // require(
             //     stakeRegistry.weightOfOperatorForQuorum(0, msg.sender) >= task.stakeThreshold,
