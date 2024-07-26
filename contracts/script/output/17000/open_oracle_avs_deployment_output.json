@@ -14,7 +14,8 @@
     "registryCoordinator": "0x5063C16f24626b8e906624f55406C0300Ff60e00",
     "registryCoordinatorImplementation": "0x9a7f3F05e4f10931875a9850274aB66f496353C4",
     "stakeRegistry": "0xBCf87B47ef6e68AA6a1B9E321c274560c1fe91c1",
-    "stakeRegistryImplementation": "0x317734F2B8fAfb6F167a698540F0020A248776Db"
+    "stakeRegistryImplementation": "0x317734F2B8fAfb6F167a698540F0020A248776Db",
+    "openOracleIdenticalAnswerTaskManager": "0x8Ba4016C1ac617fb2D8d167deFf1B3EfC9308284"
   },
   "chainInfo": {
     "chainId": 17000,

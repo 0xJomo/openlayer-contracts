@@ -20,7 +20,8 @@ interface IOpenOracleVRFFeed {
     function saveLatestData(
         IOpenOracleIdenticalAnswerTaskManager.Task calldata task, 
         IOpenOracleIdenticalAnswerTaskManager.AggregatedTaskResponse calldata response, 
-        IOpenOracleIdenticalAnswerTaskManager.TaskResponseMetadata calldata metadata
+        IOpenOracleIdenticalAnswerTaskManager.TaskResponseMetadata calldata metadata,
+        uint32 taskIndex
     ) external;
 
     /// @notice Returns the latest data

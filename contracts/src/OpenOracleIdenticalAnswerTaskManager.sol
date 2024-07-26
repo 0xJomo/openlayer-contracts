@@ -199,8 +199,7 @@ contract OpenOracleIdenticalAnswerTaskManager is
             "Feed needs to register with task manager"
         );
         IOpenOracleVRFFeed vrfFeed = IOpenOracleVRFFeed(task.creator);
-        vrfFeed.saveLatestData(task, response, taskResponseMetadata);
-
+        vrfFeed.saveLatestData(task, response, taskResponseMetadata,response.msg.referenceTaskIndex);
         // emitting event
         emit TaskResponded(task, response, taskResponseMetadata);
     }
