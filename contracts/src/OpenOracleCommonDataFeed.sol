@@ -26,6 +26,13 @@ contract OpenOracleCommonDataFeed is Initializable, OwnableUpgradeable, IOpenOra
 
     mapping(uint8 => TaskInfo) internal taskInfo;
 
+    struct RoundInfo{
+        IOpenOracleTaskManager.WeightedTaskResponse _latestResponse;
+        IOpenOracleTaskManager.TaskResponseMetadata _latestMetadata;
+        uint32 _latestCreatedBlock;
+    }
+    mapping(uint8 => mapping(uint32 => RoundInfo)) internal taskRoundInfo;
+
     modifier onlyTaskManager() {
         require(
             msg.sender == address(_openOracleTaskManager),
@@ -70,16 +77,17 @@ contract OpenOracleCommonDataFeed is Initializable, OwnableUpgradeable, IOpenOra
         }
     }
 
-
     function saveLatestData(
         IOpenOracleTaskManager.Task calldata task,
         IOpenOracleTaskManager.WeightedTaskResponse calldata response, 
         IOpenOracleTaskManager.TaskResponseMetadata calldata metadata
     ) external onlyTaskManager {
+        taskRoundInfo[task.taskType][response.referenceTaskIndex]._latestResponse = response;
+        taskRoundInfo[task.taskType][response.referenceTaskIndex]._latestMetadata = metadata;
+        taskRoundInfo[task.taskType][response.referenceTaskIndex]._latestCreatedBlock = task.taskCreatedBlock;
         taskInfo[task.taskType]._latestResponse = response;
         taskInfo[task.taskType]._latestMetadata = metadata;
         taskInfo[task.taskType]._latestCreatedBlock = task.taskCreatedBlock;
-
         emit NewPriceReported(
             task.taskType, 
             response.referenceTaskIndex, 
@@ -105,6 +113,23 @@ contract OpenOracleCommonDataFeed is Initializable, OwnableUpgradeable, IOpenOra
         taskInfo[taskType]._latestResponse.timestamp,
         taskInfo[taskType]._latestCreatedBlock,
         taskInfo[taskType]._latestMetadata.taskResponsedBlock
+        );
+    }
+
+    function getRoundData(uint8 taskType, uint32 roundId) view external
+    returns (
+        bytes memory result,
+        uint256 sd,
+        uint256 timestamp,
+        uint32 startBlock,
+        uint32 endBlock
+    ) {
+        return (
+        taskRoundInfo[taskType][roundId]._latestResponse.result,
+        taskRoundInfo[taskType][roundId]._latestResponse.sd,
+        taskRoundInfo[taskType][roundId]._latestResponse.timestamp,
+        taskRoundInfo[taskType][roundId]._latestCreatedBlock,
+        taskRoundInfo[taskType][roundId]._latestMetadata.taskResponsedBlock
         );
     }
 
