@@ -37,7 +37,7 @@ interface IOpenOracleCommonDataFeed {
     );
 
     /// @notice Returns the latest data
-    function getRoundData(uint8 taskType, uint32 roundId) view external returns (
+    function getRoundData(uint32 roundId) view external returns (
         bytes memory result,
         uint256 sd,
         uint256 timestamp,

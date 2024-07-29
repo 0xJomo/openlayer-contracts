@@ -32,7 +32,7 @@ interface IOpenOracleVRFFeed {
     );
 
     /// @notice Returns the latest data
-    function getRoundData(uint8 taskType, uint32 roundId) view external returns (
+    function getRoundData(uint32 roundId) view external returns (
         bytes calldata result,
         uint256 timestamp,
         uint32 startBlock,

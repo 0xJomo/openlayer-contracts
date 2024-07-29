@@ -31,7 +31,7 @@ contract OpenOracleCommonDataFeed is Initializable, OwnableUpgradeable, IOpenOra
         IOpenOracleTaskManager.TaskResponseMetadata _latestMetadata;
         uint32 _latestCreatedBlock;
     }
-    mapping(uint8 => mapping(uint32 => RoundInfo)) internal taskRoundInfo;
+    mapping(uint32 => RoundInfo) internal taskRoundInfo;
 
     modifier onlyTaskManager() {
         require(
@@ -82,9 +82,9 @@ contract OpenOracleCommonDataFeed is Initializable, OwnableUpgradeable, IOpenOra
         IOpenOracleTaskManager.WeightedTaskResponse calldata response, 
         IOpenOracleTaskManager.TaskResponseMetadata calldata metadata
     ) external onlyTaskManager {
-        taskRoundInfo[task.taskType][response.referenceTaskIndex]._latestResponse = response;
-        taskRoundInfo[task.taskType][response.referenceTaskIndex]._latestMetadata = metadata;
-        taskRoundInfo[task.taskType][response.referenceTaskIndex]._latestCreatedBlock = task.taskCreatedBlock;
+        taskRoundInfo[response.referenceTaskIndex]._latestResponse = response;
+        taskRoundInfo[response.referenceTaskIndex]._latestMetadata = metadata;
+        taskRoundInfo[response.referenceTaskIndex]._latestCreatedBlock = task.taskCreatedBlock;
         taskInfo[task.taskType]._latestResponse = response;
         taskInfo[task.taskType]._latestMetadata = metadata;
         taskInfo[task.taskType]._latestCreatedBlock = task.taskCreatedBlock;
@@ -116,7 +116,7 @@ contract OpenOracleCommonDataFeed is Initializable, OwnableUpgradeable, IOpenOra
         );
     }
 
-    function getRoundData(uint8 taskType, uint32 roundId) view external
+    function getRoundData(uint32 roundId) view external
     returns (
         bytes memory result,
         uint256 sd,
@@ -125,11 +125,11 @@ contract OpenOracleCommonDataFeed is Initializable, OwnableUpgradeable, IOpenOra
         uint32 endBlock
     ) {
         return (
-        taskRoundInfo[taskType][roundId]._latestResponse.result,
-        taskRoundInfo[taskType][roundId]._latestResponse.sd,
-        taskRoundInfo[taskType][roundId]._latestResponse.timestamp,
-        taskRoundInfo[taskType][roundId]._latestCreatedBlock,
-        taskRoundInfo[taskType][roundId]._latestMetadata.taskResponsedBlock
+        taskRoundInfo[roundId]._latestResponse.result,
+        taskRoundInfo[roundId]._latestResponse.sd,
+        taskRoundInfo[roundId]._latestResponse.timestamp,
+        taskRoundInfo[roundId]._latestCreatedBlock,
+        taskRoundInfo[roundId]._latestMetadata.taskResponsedBlock
         );
     }
 
