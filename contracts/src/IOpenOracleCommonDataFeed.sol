@@ -36,6 +36,15 @@ interface IOpenOracleCommonDataFeed {
         uint32 endBlock
     );
 
+    /// @notice Returns the latest data
+    function getRoundData(uint8 taskType, uint32 roundId) view external returns (
+        bytes memory result,
+        uint256 sd,
+        uint256 timestamp,
+        uint32 startBlock,
+        uint32 endBlock
+    );
+
     function setDefaultThresholds(uint8 responderThreshold, uint96 stakeThreshold) external;
 
     function setThresholds(uint8 taskType, uint8 responderThreshold, uint96 stakeThreshold) external;

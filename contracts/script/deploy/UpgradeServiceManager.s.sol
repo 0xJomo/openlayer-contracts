@@ -39,12 +39,6 @@ contract UpgradeServiceManager is Script, Utils {
                 ".addresses.registryCoordinator"
             )
         );
-        OpenOracleTaskManager openOracleTaskManager = OpenOracleTaskManager(
-            stdJson.readAddress(
-                openOracleDeployedContracts,
-                ".addresses.openOracleTaskManager"
-            )
-        );
         StakeRegistry stakeRegistry = StakeRegistry(
             stdJson.readAddress(
                 openOracleDeployedContracts,

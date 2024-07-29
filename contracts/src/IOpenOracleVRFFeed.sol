@@ -31,5 +31,13 @@ interface IOpenOracleVRFFeed {
         uint32 endBlock
     );
 
+    /// @notice Returns the latest data
+    function getRoundData(uint8 taskType, uint32 roundId) view external returns (
+        bytes calldata result,
+        uint256 timestamp,
+        uint32 startBlock,
+        uint32 endBlock
+    );
+
     function setThresholds(uint8 responderThreshold, uint96 stakeThreshold) external;
 }
