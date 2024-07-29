@@ -69,8 +69,7 @@ contract OpenOracleVRFFeed is Initializable, OwnableUpgradeable,
     function saveLatestData(
         IOpenOracleIdenticalAnswerTaskManager.Task calldata task,
         IOpenOracleIdenticalAnswerTaskManager.AggregatedTaskResponse calldata response,
-        IOpenOracleIdenticalAnswerTaskManager.TaskResponseMetadata calldata metadata,
-        uint32 taskIndex
+        IOpenOracleIdenticalAnswerTaskManager.TaskResponseMetadata calldata metadata
     ) external onlyTaskManager {
         bytes memory result = new bytes(32);
         bytes32 data = keccak256(abi.encode(response.aggregatedSignature));
@@ -81,7 +80,7 @@ contract OpenOracleVRFFeed is Initializable, OwnableUpgradeable,
         _latestMetadata = metadata;
         _latestCreatedBlock = task.taskCreatedBlock;
         _latestResponse.msg.result = result;
-
+        uint32 taskIndex = response.msg.referenceTaskIndex;
         taskRoundInfo[task.taskType][taskIndex]._latestResponse = _latestResponse;
         taskRoundInfo[task.taskType][taskIndex]._latestMetadata = _latestMetadata;
         taskRoundInfo[task.taskType][taskIndex]._latestCreatedBlock = _latestCreatedBlock;
