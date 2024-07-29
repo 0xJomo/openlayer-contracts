@@ -1,24 +1,20 @@
 {
   "addresses": {
-    "blsApkRegistry": "0xa927993AcD8C23da1B6596fC3281383F7072C2cE",
-    "blsApkRegistryImplementation": "0x92783b0AdA81CBEbC209C732274D798c43FB35A5",
-    "indexRegistry": "0xA13d5dDF616b9595783eEC7aCD952cB07D033a24",
-    "indexRegistryImplementation": "0x6B18e9Cd9390E1736cA3404ec9dbD9bcA0F59c22",
-    "openOracleServiceManager": "0x6844a6cb1Bf46c5216ED8499936B2F7148088383",
-    "openOracleServiceManagerImplementation": "0xBAe10441d3a2fbF0939bf8FB6d73f632307E423C",
-    "openOracleTaskManager": "0x2013dBaEb4182BBb33fa94cA59F9f27EAA2F6d00",
-    "openOracleTaskManagerImplementation": "0x33De285d77C96dC3c402DC3da36280a5DA8d3f1B",
-    "operatorStateRetriever": "0xef3400E6Fa08D7bF14e8bb4a6F966509FC9ecB85",
-    "pauserRegistry": "0x5957f95Fb75a3B8AdfAA5469635F5879966c9F84",
-    "proxyAdmin": "0xF04F5716e9c8ba698755B9a9d084378fBee84706",
-    "registryCoordinator": "0x5063C16f24626b8e906624f55406C0300Ff60e00",
-    "registryCoordinatorImplementation": "0x9a7f3F05e4f10931875a9850274aB66f496353C4",
-    "stakeRegistry": "0xBCf87B47ef6e68AA6a1B9E321c274560c1fe91c1",
-    "stakeRegistryImplementation": "0x317734F2B8fAfb6F167a698540F0020A248776Db",
-    "openOracleIdenticalAnswerTaskManager": "0x8Ba4016C1ac617fb2D8d167deFf1B3EfC9308284"
-  },
-  "chainInfo": {
-    "chainId": 17000,
-    "deploymentBlock": 1770542
+    "blsApkRegistry": "0x4C034919BAA0fE80F4Def057214A67Ee9183181c",
+    "blsApkRegistryImplementation": "0x50cC9f49891daA0c8266182406bef56C20b82Aff",
+    "indexRegistry": "0xd79B4dfF9b32e7829676F1a30FC6d883062caCda",
+    "indexRegistryImplementation": "0x98aD9F945b75010b51974977C1Ff8b4BBad3E4eC",
+    "openOracleServiceManager": "0xF9B555d1D5be5c24ad9B11a87409d7107a8b6174",
+    "openOracleServiceManagerImplementation": "0x52caE460a17C2209D23c27fC501964f2253689B5",
+    "openOracleTaskManager": "0xd019a78a19F8Ae1DCB5CD188620BCBC8fd3C8090",
+    "openOracleTaskManagerImplementation": "0x9f185aFD133bE6c27b026DeBf35888Aeb7086904",
+    "operatorStateRetriever": "0x12ddeDbB47340e6702529197cB593204A4aFa318",
+    "proxyAdmin": "0xC71bF90BD3d3540FAf5D51ee7436797362774a52",
+    "registryCoordinator": "0xE0315CCaF46A736BFAB173670CBcC97bE65Eb414",
+    "registryCoordinatorImplementation": "0x9A1e1F27924854A0eF181255115d830D0d229829",
+    "stakeRegistry": "0x409347e909e5aeB4B273d2668fEac6F423582BbD",
+    "stakeRegistryImplementation": "0x9313fE3DB30D761DA9C1e662C4235742FB963fc0",
+    "pauserRegistry": "0x9Ead9A21D56ACb2321dd0121FeE6C1995529560D",
+    "openOracleIdenticalAnswerTaskManager": "0x75D20a2f7b216eA7Ef3186D0cC704A8D250B43a0"
   }
 }

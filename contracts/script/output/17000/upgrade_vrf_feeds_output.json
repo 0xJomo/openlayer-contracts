@@ -1,10 +1,10 @@
 {
   "addresses": {
-    "openOracleIdenticalAnswerTaskManager": "0x8Ba4016C1ac617fb2D8d167deFf1B3EfC9308284",
-    "openOracleVRFFeed": "0x56599d43e82A730a1c2064c4756f5B6892e39Cf0"
+    "openOracleIdenticalAnswerTaskManager": "0x75D20a2f7b216eA7Ef3186D0cC704A8D250B43a0",
+    "openOracleVRFFeed": "0x298e55eDe8AE5fD1Ec68DFce867D6D77b4EEA8c5"
   },
   "impl_addresses": {
-    "openOracleVRFFeedImplementation": "0x3585caeCcc36dE46CEfC8b5CF24C99ef1c4F825f",
-    "proxyAdmin": "0xF04F5716e9c8ba698755B9a9d084378fBee84706"
+    "openOracleVRFFeedImplementation": "0xA80b900972b913173Bbf9c5c23d024495774EFe1",
+    "proxyAdmin": "0xC71bF90BD3d3540FAf5D51ee7436797362774a52"
   }
 }
