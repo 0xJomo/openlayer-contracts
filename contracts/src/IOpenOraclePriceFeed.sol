@@ -7,7 +7,7 @@ interface IOpenOraclePriceFeed {
     event NewPriceReported(
         uint8 indexed taskType, 
         uint32 referenceTaskIndex, 
-        uint256 price, 
+        bytes result,
         uint256 sd, 
         uint256 timestamp, 
         uint32 createdBlock, 
@@ -29,7 +29,7 @@ interface IOpenOraclePriceFeed {
 
     /// @notice Returns the latest data
     function latestRoundData() view external returns (
-        uint256 price,
+        bytes memory result,
         uint256 sd,
         uint256 timestamp,
         uint32 startBlock,

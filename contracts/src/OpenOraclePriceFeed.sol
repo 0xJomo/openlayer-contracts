@@ -78,7 +78,7 @@ contract OpenOraclePriceFeed is Initializable, OwnableUpgradeable,
 
     function latestRoundData() view external
     returns (
-        uint256 price,
+        bytes memory result,
         uint256 sd,
         uint256 timestamp,
         uint32 startBlock,
