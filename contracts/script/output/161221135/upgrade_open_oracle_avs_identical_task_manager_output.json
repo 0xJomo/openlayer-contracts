@@ -1,9 +1,9 @@
 {
   "addresses": {
-    "BLSSignatureChecker": "0x6F5C46e058De07F361263105787BB2FD357006ab",
-    "openOracleIdenticalAnswerTaskManager": "0xf227bE6dB4AAadE16236E578673495D909E961bc"
+    "BLSSignatureChecker": "0x1A5cb9f63699753bE2fd5C64C679c30A00AC966A",
+    "openOracleIdenticalAnswerTaskManager": "0xdC46e5196Db999b84994C7B871D2f6475BDF83F3"
   },
   "impl_addresses": {
-    "openOracleIdenticalAnswerTaskManagerImplementation": "0x371A03c2F9D4BF938A75B89690610fE4fCa55809"
+    "openOracleIdenticalAnswerTaskManagerImplementation": "0xa9E021E229BdF5C72C25F8C25a5617892C056D66"
   }
 }

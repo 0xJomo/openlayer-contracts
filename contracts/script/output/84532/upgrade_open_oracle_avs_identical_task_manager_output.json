@@ -1,0 +1,9 @@
+{
+  "addresses": {
+    "BLSSignatureChecker": "0x27eFAA0727De4F059DaAB7AeC06Fd43b25f1cD82",
+    "openOracleIdenticalAnswerTaskManager": "0xdC2cce23BeE99857ACc7d25A513f4976aa7F9739"
+  },
+  "impl_addresses": {
+    "openOracleIdenticalAnswerTaskManagerImplementation": "0xbD484B1314b10F8d4F3982E7193Cd48a424895d5"
+  }
+}
