@@ -1,0 +1,10 @@
+{
+  "addresses": {
+    "openOracleIdenticalAnswerTaskManager": "0xf227bE6dB4AAadE16236E578673495D909E961bc",
+    "openOracleVRFFeed": "0x391C9dA5e9D70f32a4E89236D1A0e1fed4F94e2B"
+  },
+  "impl_addresses": {
+    "openOracleVRFFeedImplementation": "0xA32260C889b820678A12452f12f60740834079b1",
+    "proxyAdmin": "0x832959Db14527437fBdaAE6994ab45Fa987Cc491"
+  }
+}
