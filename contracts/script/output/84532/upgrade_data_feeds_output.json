@@ -4,7 +4,7 @@
     "openOracleTaskManager": "0x8866bBe1DAdc846BaBa0e5196493434A3D8F49Fe"
   },
   "impl_addresses": {
-    "openOracleDataFeedImplementation": "0xE8daF90f292E096C8e46C2BB5957eA9cCFA72D7D",
+    "openOracleDataFeedImplementation": "0xa53F904d12bAE4c825AE935b12EBcf90E7aC72b8",
     "proxyAdmin": "0x86cF6B4ca942C09141bBe50B42c59671DF28D20c"
   }
 }
