@@ -9,6 +9,7 @@
     "registryCoordinator": "0xfF27eCBd78614458533D719E52Fb4ABDE6CCe052",
     "registryCoordinatorImplementation": "0x9880a60D96322ffD4900994fa33C09FfeD86A291",
     "stakeRegistry": "0xAb48f54B4674cD07087E84A080BFED40976744B3",
-    "stakeRegistryImplementation": "0xe6E67F3D5b21fcdb95629F8D30b40Ff7f7bEA9e0"
+    "stakeRegistryImplementation": "0xe6E67F3D5b21fcdb95629F8D30b40Ff7f7bEA9e0",
+    "openOracleIdenticalAnswerTaskManager": "0xC7585d75B251aF498D0d875108A6ac6228e3275f"
   }
 }
