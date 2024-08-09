@@ -4,6 +4,7 @@ pragma solidity ^0.8.9;
 import "./OpenOracleIdenticalAnswerTaskManager.sol";
 import "./IOpenOracleVRFFeed.sol";
 
+
 import {OwnableUpgradeable} from "@openzeppelin-upgrades/contracts/access/OwnableUpgradeable.sol";
 import "@openzeppelin-upgrades/contracts/proxy/utils/Initializable.sol";
 
@@ -27,6 +28,12 @@ contract OpenOracleVRFFeed is Initializable, OwnableUpgradeable,
         uint32 _latestCreatedBlock;
     }
     mapping(uint32 => RoundInfo) internal taskRoundInfo;
+
+    mapping(bytes32 => address) private requestClients;
+
+    uint256 public callbackLimit = 50000;
+
+    mapping(bytes32 => uint256) private requestRounds;
 
     modifier onlyTaskManager() {
         require(
@@ -66,6 +73,22 @@ contract OpenOracleVRFFeed is Initializable, OwnableUpgradeable,
             _taskType, taskData, responderThreshold, stakeThreshold);
     }
 
+    function createNewTaskWithCallback(bytes calldata taskData, uint256 requestId) external {
+        bytes32 taskHash = _openOracleIdenticalAnswerTaskManager.createNewTask(
+            _taskType, taskData, _responderThreshold, _stakeThreshold);
+        requestClients[taskHash] = msg.sender;
+        requestRounds[taskHash] = requestId;
+    }
+
+    function createNewTaskWithCallback(bytes calldata taskData,
+        uint8 responderThreshold,
+        uint96 stakeThreshold, uint256 requestId) external {
+        bytes32 taskHash = _openOracleIdenticalAnswerTaskManager.createNewTask(
+            _taskType, taskData, responderThreshold, stakeThreshold);
+        requestClients[taskHash] = msg.sender;
+        requestRounds[taskHash] = requestId;
+    }
+
     function saveLatestData(
         IOpenOracleIdenticalAnswerTaskManager.Task calldata task,
         IOpenOracleIdenticalAnswerTaskManager.AggregatedTaskResponse calldata response,
@@ -87,12 +110,21 @@ contract OpenOracleVRFFeed is Initializable, OwnableUpgradeable,
 
         emit NewIdenticalAnswerReported(
             task.taskType,
-                taskIndex,
-                result,
+            taskIndex,
+            result,
             response.timestamp,
             task.taskCreatedBlock,
             metadata.taskResponsedBlock
         );
+
+        // Report to on chain VRF client
+        bytes32 taskHash = keccak256(abi.encode(task));
+        address _callback = requestClients[taskHash];
+        if (_callback != address(0)) {
+            (bool success, ) =  _callback.call{gas: callbackLimit}(abi.encodeWithSignature("fulfillResult(uint256,bytes,bytes)", requestRounds[taskHash], result, task.taskData));
+            require(success, "fulfillResult callback failed");
+        }
+
     }
 
     function latestRoundData() view external
@@ -128,5 +160,9 @@ contract OpenOracleVRFFeed is Initializable, OwnableUpgradeable,
     function setThresholds(uint8 responderThreshold, uint96 stakeThreshold) external onlyOwner {
         _responderThreshold = responderThreshold;
         _stakeThreshold = stakeThreshold;
+    }
+
+    function setCallbackLimit(uint256 _callbackLimit) external onlyOwner {
+        callbackLimit = _callbackLimit;
     }
 }

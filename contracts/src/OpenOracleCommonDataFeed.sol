@@ -33,6 +33,12 @@ contract OpenOracleCommonDataFeed is Initializable, OwnableUpgradeable, IOpenOra
     }
     mapping(uint32 => RoundInfo) internal taskRoundInfo;
 
+    mapping(bytes32 => address) private requestClients;
+
+    uint256 public callbackLimit = 50000;
+
+    mapping(bytes32 => uint256) private requestRounds;
+
     modifier onlyTaskManager() {
         require(
             msg.sender == address(_openOracleTaskManager),
@@ -68,6 +74,20 @@ contract OpenOracleCommonDataFeed is Initializable, OwnableUpgradeable, IOpenOra
         _openOracleTaskManager.createNewTaskWithData(_taskType, taskInfo[_taskType]._responderThreshold, taskInfo[_taskType]._stakeThreshold, _taskData);
     }
 
+    function requestNewReportCallback(uint8 _taskType, uint256 requestId) override external {
+        _createTaskInfo(_taskType);
+        bytes32 taskHash = _openOracleTaskManager.createNewTask(_taskType, taskInfo[_taskType]._responderThreshold, taskInfo[_taskType]._stakeThreshold);
+        requestClients[taskHash] = msg.sender;
+        requestRounds[taskHash] = requestId;
+    }
+
+    function requestNewReportWithDataCallback(uint8 _taskType,bytes calldata _taskData, uint256 requestId) override external {
+        _createTaskInfo(_taskType);
+        bytes32 taskHash = _openOracleTaskManager.createNewTaskWithData(_taskType, taskInfo[_taskType]._responderThreshold, taskInfo[_taskType]._stakeThreshold, _taskData);
+        requestClients[taskHash] = msg.sender;
+        requestRounds[taskHash] = requestId;
+    }
+
     function _createTaskInfo(uint8 _taskType) internal{
         if(taskInfo[_taskType]._latestCreatedBlock <= uint32(0)){
             IOpenOracleTaskManager.WeightedTaskResponse memory _latestResponse;
@@ -97,6 +117,13 @@ contract OpenOracleCommonDataFeed is Initializable, OwnableUpgradeable, IOpenOra
             task.taskCreatedBlock, 
             metadata.taskResponsedBlock
         );
+
+        bytes32 taskHash = keccak256(abi.encode(task));
+        address _callback = requestClients[taskHash];
+        if (_callback != address(0)) {
+            (bool success, ) = _callback.call{gas: callbackLimit}(abi.encodeWithSignature("fulfillResult(uint256,bytes,bytes)",requestRounds[taskHash], response.result, 0x0));
+            require(success, "fulfillResult callback failed");
+        }
     }
 
     function latestRoundData(uint8 taskType) view external
@@ -142,5 +169,9 @@ contract OpenOracleCommonDataFeed is Initializable, OwnableUpgradeable, IOpenOra
         require(taskInfo[taskType]._latestCreatedBlock > uint32(0), "OpenOraclePriceFeed: taskType not exists");
         taskInfo[taskType]._responderThreshold = _responderThreshold;
         taskInfo[taskType]._stakeThreshold = _stakeThreshold;
+    }
+
+    function setCallbackLimit(uint256 _callbackLimit) external onlyOwner {
+        callbackLimit = _callbackLimit;
     }
 }

@@ -20,6 +20,10 @@ interface IOpenOracleCommonDataFeed {
     /// @notice Call the task manager to request latest data
     function requestNewReportWithData(uint8 _taskType,bytes calldata _taskData) external;
 
+    function requestNewReportCallback(uint8 _taskType, uint256 requestId) external;
+
+    function requestNewReportWithDataCallback(uint8 _taskType,bytes calldata _taskData, uint256 requestId) external;
+
     /// @notice Saves the latest data from task manager in contract
     function saveLatestData(
         IOpenOracleTaskManager.Task calldata task, 

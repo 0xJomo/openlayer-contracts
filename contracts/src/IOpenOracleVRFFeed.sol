@@ -13,8 +13,17 @@ interface IOpenOracleVRFFeed {
         uint32 respondedBlock
     );
 
-    // /// @notice Call the task manager to request latest data
-    // function requestNewReport() external;
+    function createNewTask(bytes calldata taskData) external;
+
+    function createNewTask(bytes calldata taskData,
+        uint8 responderThreshold,
+        uint96 stakeThreshold) external;
+
+    function createNewTaskWithCallback(bytes calldata taskData, uint256 requestId) external;
+
+    function createNewTaskWithCallback(bytes calldata taskData,
+        uint8 responderThreshold,
+        uint96 stakeThreshold, uint256 requestId) external;
 
     /// @notice Saves the latest data from task manager in contract
     function saveLatestData(

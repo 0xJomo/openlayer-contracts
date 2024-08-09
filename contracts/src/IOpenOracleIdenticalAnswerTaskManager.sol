@@ -58,7 +58,7 @@ interface IOpenOracleIdenticalAnswerTaskManager {
         bytes calldata taskData,
         uint8 responderThreshold,
         uint96 stakeThreshold
-    ) external;
+    ) external returns (bytes32);
 
     function respondToTask(
         Task calldata task,

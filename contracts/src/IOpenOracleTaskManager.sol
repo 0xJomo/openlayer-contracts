@@ -72,7 +72,7 @@ interface IOpenOracleTaskManager {
         uint8 taskType,
         uint8 responderThreshold,
         uint96 stakeThreshold
-    ) external;
+    ) external returns (bytes32);
 
     // NOTE: this function creates new task.
     function createNewTaskWithData(
@@ -80,7 +80,7 @@ interface IOpenOracleTaskManager {
         uint8 responderThreshold,
         uint96 stakeThreshold,
         bytes calldata taskData
-    ) external;
+    ) external returns (bytes32);
 
     function respondToTask(
         Task calldata task,

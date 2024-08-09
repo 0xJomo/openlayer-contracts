@@ -119,12 +119,12 @@ contract OpenOracleTaskManager is
         uint8 taskType,
         uint8 responderThreshold,
         uint96 stakeThreshold
-    ) external onlyFeed {
+    ) external onlyFeed returns (bytes32){
         // create a new task struct
-        Task memory newTask = _createNewTask(taskType, responderThreshold, stakeThreshold);
+        (Task memory newTask, bytes32 taskHash) = _createNewTask(taskType, responderThreshold, stakeThreshold);
         emit NewTaskCreated(latestTaskNum, newTask, "");
         latestTaskNum = latestTaskNum + 1;
-
+        return taskHash;
         // // Refund any excess payment
         // if (msg.value > taskCreationFee) {
         //     payable(msg.sender).transfer(msg.value - taskCreationFee);
@@ -137,12 +137,12 @@ contract OpenOracleTaskManager is
         uint8 responderThreshold,
         uint96 stakeThreshold,
         bytes calldata _taskData
-    ) external onlyFeed {
+    ) external onlyFeed returns (bytes32){
         // create a new task struct
-        Task memory newTask = _createNewTask(taskType, responderThreshold, stakeThreshold);
+        (Task memory newTask, bytes32 taskHash) = _createNewTask(taskType, responderThreshold, stakeThreshold);
         emit NewTaskCreated(latestTaskNum, newTask, _taskData);
         latestTaskNum = latestTaskNum + 1;
-
+        return taskHash;
         // // Refund any excess payment
         // if (msg.value > taskCreationFee) {
         //     payable(msg.sender).transfer(msg.value - taskCreationFee);
@@ -152,7 +152,7 @@ contract OpenOracleTaskManager is
     function _createNewTask(
         uint8 taskType,
         uint8 responderThreshold,
-        uint96 stakeThreshold) private returns (Task memory newTask){
+        uint96 stakeThreshold) private returns (Task memory newTask, bytes32 taskHash){
         // create a new task struct
         newTask.taskType = taskType;
         newTask.taskCreatedBlock = uint32(block.number);
@@ -161,7 +161,8 @@ contract OpenOracleTaskManager is
         newTask.creator = payable(msg.sender);
         newTask.creationFee = 0; // msg.value;
         // store hash of task onchain, emit event, and increase taskNum
-        allTaskHashes[latestTaskNum] = keccak256(abi.encode(newTask));
+        taskHash = keccak256(abi.encode(newTask));
+        allTaskHashes[latestTaskNum] = taskHash;
     }
 
     // NOTE: this function responds to existing tasks.

@@ -114,7 +114,7 @@ contract OpenOracleIdenticalAnswerTaskManager is
         bytes calldata taskData,
         uint8 responderThreshold,
         uint96 stakeThreshold
-    ) external onlyFeed {
+    ) external onlyFeed returns (bytes32) {
         // create a new task struct
         Task memory newTask;
         newTask.taskType = taskType;
@@ -126,7 +126,8 @@ contract OpenOracleIdenticalAnswerTaskManager is
         newTask.creationFee = 0; // msg.value;
 
         // store hash of task onchain, emit event, and increase taskNum
-        allTaskHashes[latestTaskNum] = keccak256(abi.encode(newTask));
+        bytes32 taskHash = keccak256(abi.encode(newTask));
+        allTaskHashes[latestTaskNum] = taskHash;
         emit NewIdenticalAnswerTaskCreated(latestTaskNum, newTask);
 
         latestTaskNum = latestTaskNum + 1;
@@ -135,6 +136,7 @@ contract OpenOracleIdenticalAnswerTaskManager is
         // if (msg.value > taskCreationFee) {
         //     payable(msg.sender).transfer(msg.value - taskCreationFee);
         // }
+        return taskHash;
     }
 
     // NOTE: this function responds to existing tasks.
