@@ -18,6 +18,10 @@ contract OpenOracleDataFeedConsumer is IOpenOracleFeedConsumer {
         bytes data;
     }
 
+    constructor(address _dateFeed){
+        dateFeed = _dateFeed;
+    }
+
     function request() public{
         IOpenOracleCommonDataFeed(dateFeed).requestNewReportCallback(uint8(0),requestId);
         emit Request(requestId);
@@ -31,7 +35,7 @@ contract OpenOracleDataFeedConsumer is IOpenOracleFeedConsumer {
     ) external {
         bytes memory result = _result;
         bytes memory data = _data;
-        results[requestId] = Response(result,data);
+        results[_requestId] = Response(result,data);
     }
 
     function otherFunction() public{

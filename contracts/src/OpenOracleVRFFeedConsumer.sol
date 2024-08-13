@@ -17,6 +17,10 @@ contract OpenOracleVRFFeedConsumer is IOpenOracleFeedConsumer {
         bytes result;
         bytes data;
     }
+
+    constructor(address _vrfFeed){
+        vrfFeed = _vrfFeed;
+    }
     function request() public{
         bytes memory data;
         IOpenOracleVRFFeed(vrfFeed).createNewTaskWithCallback(data,requestId);
@@ -31,7 +35,7 @@ contract OpenOracleVRFFeedConsumer is IOpenOracleFeedConsumer {
     ) external {
         bytes memory result = _result;
         bytes memory data = _data;
-        results[requestId] = Response(result,data);
+        results[_requestId] = Response(result,data);
     }
 
     function otherFunction() public{

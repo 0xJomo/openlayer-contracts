@@ -35,7 +35,7 @@ contract OpenOracleCommonDataFeed is Initializable, OwnableUpgradeable, IOpenOra
 
     mapping(bytes32 => address) private requestClients;
 
-    uint256 public callbackLimit = 50000;
+    uint256 public callbackLimit;
 
     mapping(bytes32 => uint256) private requestRounds;
 

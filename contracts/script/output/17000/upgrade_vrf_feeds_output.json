@@ -4,7 +4,7 @@
     "openOracleVRFFeed": "0x298e55eDe8AE5fD1Ec68DFce867D6D77b4EEA8c5"
   },
   "impl_addresses": {
-    "openOracleVRFFeedImplementation": "0x09f2D92d47195eF5FC0DEc446094470a09aa0dB8",
+    "openOracleVRFFeedImplementation": "0xB9BC1c59C7CD33EBa9342DDc15E19de14A8DfC3E",
     "proxyAdmin": "0xC71bF90BD3d3540FAf5D51ee7436797362774a52"
   }
 }
